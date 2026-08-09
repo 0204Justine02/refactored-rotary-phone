@@ -11,40 +11,28 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # =========================================================
-      # 1. GET PROJECT
-      # =========================================================
+      # 1. Checkout repository
       - name: Checkout
         uses: actions/checkout@v4
 
-      # =========================================================
-      # 2. NODE
-      # =========================================================
+      # 2. Node.js
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
 
-      # =========================================================
-      # 3. JAVA
-      # =========================================================
+      # 3. Java
       - name: Setup Java
         uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: 17
-          cache: gradle
 
-      # =========================================================
-      # 4. ANDROID SDK
-      # =========================================================
+      # 4. Android SDK
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      # =========================================================
-      # 5. PREPARE ALL TINEHUB WEB FILES
-      # =========================================================
+      # 5. Prepare website
       - name: Prepare website
         shell: bash
         run: |
@@ -53,14 +41,10 @@ jobs:
           rm -rf www
           mkdir -p www
 
-          echo "Copying TineHub website..."
-
-          # Main files
           cp index.html www/
-          cp app.js www/
-          cp style.css www/
 
-          # Optional files
+          [ -f app.js ] && cp app.js www/ || true
+          [ -f style.css ] && cp style.css www/ || true
           [ -f manifest.json ] && cp manifest.json www/ || true
           [ -f service-worker.js ] && cp service-worker.js www/ || true
 
@@ -68,7 +52,7 @@ jobs:
           [ -f tineworld_v5.js ] && cp tineworld_v5.js www/ || true
           [ -f tineworld.js ] && cp tineworld.js www/ || true
 
-          # Images / icons
+          # Images
           [ -f justine-hub-logo.png ] && cp justine-hub-logo.png www/ || true
           [ -f icon-192.png ] && cp icon-192.png www/ || true
           [ -f icon-512.png ] && cp icon-512.png www/ || true
@@ -77,22 +61,15 @@ jobs:
           [ -f chill_background.wav ] && cp chill_background.wav www/ || true
           [ -f chill_background.mp3 ] && cp chill_background.mp3 www/ || true
 
-          # Text / configuration files
-          [ -f README_TINEWORLD_5.txt ] && cp README_TINEWORLD_5.txt www/ || true
-          [ -f ANDROID_FULLSCREEN_NOTES.txt ] && cp ANDROID_FULLSCREEN_NOTES.txt www/ || true
-
-          # Copy app/assets if they exist
+          # App assets
           if [ -d app ]; then
-            mkdir -p www/app
-            cp -r app/. www/app/
+            cp -r app www/app
           fi
 
-          echo "===== WWW FILES ====="
-          find www -maxdepth 3 -type f | sort
+          echo "===== WEBSITE FILES ====="
+          find www -type f | sort
 
-      # =========================================================
-      # 6. CREATE CAPACITOR PACKAGE
-      # =========================================================
+      # 6. Create Capacitor project
       - name: Create package
         shell: bash
         run: |
@@ -105,9 +82,7 @@ jobs:
             @capacitor/cli@6 \
             @capacitor/android@6
 
-      # =========================================================
-      # 7. CREATE ANDROID PROJECT
-      # =========================================================
+      # 7. Create Android project
       - name: Create Android project
         shell: bash
         run: |
@@ -122,31 +97,8 @@ jobs:
 
           npx cap add android
 
-      # =========================================================
-      # 8. CONFIGURE ANDROID APP
-      # =========================================================
+      # 8. Android configuration
       - name: Configure Android
-        shell: bash
-        run: |
-          set -e
-
-          MANIFEST="android/app/src/main/AndroidManifest.xml"
-
-          echo "===== BEFORE MANIFEST ====="
-          cat "$MANIFEST"
-
-          # Allow landscape / portrait.
-          sed -i \
-            's/<activity /<activity android:screenOrientation="sensorLandscape" /' \
-            "$MANIFEST" || true
-
-          echo "===== AFTER MANIFEST ====="
-          cat "$MANIFEST"
-
-      # =========================================================
-      # 9. SET APP NAME
-      # =========================================================
-      - name: Set Android app name
         shell: bash
         run: |
           set -e
@@ -159,64 +111,24 @@ jobs:
               "$STRINGS" || true
           fi
 
-      # =========================================================
-      # 10. COPY ICON
-      # =========================================================
+      # 9. Copy app icon
       - name: Set app icon
         shell: bash
         run: |
-          set -e
-
           if [ -f justine-hub-logo.png ]; then
             mkdir -p android/app/src/main/res/drawable
             cp justine-hub-logo.png \
               android/app/src/main/res/drawable/justine_hub_logo.png
           fi
 
-      # =========================================================
-      # 11. SYNC CAPACITOR
-      # =========================================================
+      # 10. Sync Capacitor
       - name: Sync Capacitor
         shell: bash
         run: |
           set -e
           npx cap sync android
 
-      # =========================================================
-      # 12. VERIFY IMPORTANT FILES
-      # =========================================================
-      - name: Verify TineWorld files
-        shell: bash
-        run: |
-          set -e
-
-          echo "Checking TineHub files..."
-
-          test -f www/index.html
-          test -f www/app.js
-          test -f www/style.css
-
-          if [ -f www/tineworld_v5.js ]; then
-            echo "✓ TineWorld engine found"
-          else
-            echo "⚠ tineworld_v5.js not found"
-          fi
-
-          if [ -f www/justine-hub-logo.png ]; then
-            echo "✓ Logo found"
-          fi
-
-          if [ -f www/chill_background.wav ]; then
-            echo "✓ Background audio found"
-          fi
-
-          echo ""
-          echo "===== FINAL WEB FILES ====="
-          find www -type f | sort
-
-      # =========================================================
-      # 13. BUILD APK
-      # =========================================================
+      # 11. Build APK
       - name: Build APK
         working-directory: android
         shell: bash
@@ -229,10 +141,8 @@ jobs:
             --no-daemon \
             --stacktrace
 
-      # =========================================================
-      # 14. COPY APK
-      # =========================================================
-      - name: Rename APK
+      # 12. Copy APK to repository root
+      - name: Prepare direct download APK
         shell: bash
         run: |
           set -e
@@ -245,9 +155,7 @@ jobs:
 
           ls -lh JUSTINEHUB.apk
 
-      # =========================================================
-      # 15. UPLOAD APK AS ACTION ARTIFACT
-      # =========================================================
+      # 13. Upload APK as Actions artifact too
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
@@ -255,22 +163,20 @@ jobs:
           path: JUSTINEHUB.apk
           if-no-files-found: error
 
-      # =========================================================
-      # 16. CREATE / UPDATE GITHUB RELEASE
-      # =========================================================
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: justinehub-latest
-          name: JUSTINEHUB Latest
-          body: |
-            JUSTINEHUB latest APK.
+      # 14. Commit APK directly to repository
+      - name: Commit APK to repository
+        shell: bash
+        run: |
+          set -e
 
-            Updated TineHub + TineWorld build.
-            Android APK generated automatically by GitHub Actions.
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-            Download JUSTINEHUB.apk below.
-          files: JUSTINEHUB.apk
-          make_latest: true
-          prerelease: false
-          overwrite_files: true
+          git add JUSTINEHUB.apk
+
+          if git diff --cached --quiet; then
+            echo "APK unchanged."
+          else
+            git commit -m "Update JUSTINEHUB APK"
+            git push
+          fi
