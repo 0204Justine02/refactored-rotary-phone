@@ -1,35 +1,276 @@
-name: Build JustineHub APK
+name: Build JUSTINEHUB APK
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
+
+permissions:
+  contents: write
 
 jobs:
-  build:
+  build-apk:
     runs-on: ubuntu-latest
 
     steps:
+      # =========================================================
+      # 1. GET PROJECT
+      # =========================================================
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
+      # =========================================================
+      # 2. NODE
+      # =========================================================
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      # =========================================================
+      # 3. JAVA
+      # =========================================================
+      - name: Setup Java
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: 17
+          cache: gradle
 
-      - name: Set up Android SDK
+      # =========================================================
+      # 4. ANDROID SDK
+      # =========================================================
+      - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Build APK
+      # =========================================================
+      # 5. PREPARE ALL TINEHUB WEB FILES
+      # =========================================================
+      - name: Prepare website
+        shell: bash
         run: |
-          chmod +x gradlew
-          ./gradlew assembleDebug
+          set -e
 
-      - name: Upload APK
+          rm -rf www
+          mkdir -p www
+
+          echo "Copying TineHub website..."
+
+          # Main files
+          cp index.html www/
+          cp app.js www/
+          cp style.css www/
+
+          # Optional files
+          [ -f manifest.json ] && cp manifest.json www/ || true
+          [ -f service-worker.js ] && cp service-worker.js www/ || true
+
+          # TineWorld
+          [ -f tineworld_v5.js ] && cp tineworld_v5.js www/ || true
+          [ -f tineworld.js ] && cp tineworld.js www/ || true
+
+          # Images / icons
+          [ -f justine-hub-logo.png ] && cp justine-hub-logo.png www/ || true
+          [ -f icon-192.png ] && cp icon-192.png www/ || true
+          [ -f icon-512.png ] && cp icon-512.png www/ || true
+
+          # Audio
+          [ -f chill_background.wav ] && cp chill_background.wav www/ || true
+          [ -f chill_background.mp3 ] && cp chill_background.mp3 www/ || true
+
+          # Text / configuration files
+          [ -f README_TINEWORLD_5.txt ] && cp README_TINEWORLD_5.txt www/ || true
+          [ -f ANDROID_FULLSCREEN_NOTES.txt ] && cp ANDROID_FULLSCREEN_NOTES.txt www/ || true
+
+          # Copy app/assets if they exist
+          if [ -d app ]; then
+            mkdir -p www/app
+            cp -r app/. www/app/
+          fi
+
+          echo "===== WWW FILES ====="
+          find www -maxdepth 3 -type f | sort
+
+      # =========================================================
+      # 6. CREATE CAPACITOR PACKAGE
+      # =========================================================
+      - name: Create package
+        shell: bash
+        run: |
+          set -e
+
+          npm init -y
+
+          npm install \
+            @capacitor/core@6 \
+            @capacitor/cli@6 \
+            @capacitor/android@6
+
+      # =========================================================
+      # 7. CREATE ANDROID PROJECT
+      # =========================================================
+      - name: Create Android project
+        shell: bash
+        run: |
+          set -e
+
+          rm -rf android
+
+          npx cap init \
+            "JUSTINEHUB" \
+            "com.justinehub.app" \
+            --web-dir www
+
+          npx cap add android
+
+      # =========================================================
+      # 8. CONFIGURE ANDROID APP
+      # =========================================================
+      - name: Configure Android
+        shell: bash
+        run: |
+          set -e
+
+          MANIFEST="android/app/src/main/AndroidManifest.xml"
+
+          echo "===== BEFORE MANIFEST ====="
+          cat "$MANIFEST"
+
+          # Allow landscape / portrait.
+          sed -i \
+            's/<activity /<activity android:screenOrientation="sensorLandscape" /' \
+            "$MANIFEST" || true
+
+          echo "===== AFTER MANIFEST ====="
+          cat "$MANIFEST"
+
+      # =========================================================
+      # 9. SET APP NAME
+      # =========================================================
+      - name: Set Android app name
+        shell: bash
+        run: |
+          set -e
+
+          STRINGS="android/app/src/main/res/values/strings.xml"
+
+          if [ -f "$STRINGS" ]; then
+            sed -i \
+              's/<string name="app_name">.*<\/string>/<string name="app_name">JUSTINEHUB<\/string>/' \
+              "$STRINGS" || true
+          fi
+
+      # =========================================================
+      # 10. COPY ICON
+      # =========================================================
+      - name: Set app icon
+        shell: bash
+        run: |
+          set -e
+
+          if [ -f justine-hub-logo.png ]; then
+            mkdir -p android/app/src/main/res/drawable
+            cp justine-hub-logo.png \
+              android/app/src/main/res/drawable/justine_hub_logo.png
+          fi
+
+      # =========================================================
+      # 11. SYNC CAPACITOR
+      # =========================================================
+      - name: Sync Capacitor
+        shell: bash
+        run: |
+          set -e
+          npx cap sync android
+
+      # =========================================================
+      # 12. VERIFY IMPORTANT FILES
+      # =========================================================
+      - name: Verify TineWorld files
+        shell: bash
+        run: |
+          set -e
+
+          echo "Checking TineHub files..."
+
+          test -f www/index.html
+          test -f www/app.js
+          test -f www/style.css
+
+          if [ -f www/tineworld_v5.js ]; then
+            echo "✓ TineWorld engine found"
+          else
+            echo "⚠ tineworld_v5.js not found"
+          fi
+
+          if [ -f www/justine-hub-logo.png ]; then
+            echo "✓ Logo found"
+          fi
+
+          if [ -f www/chill_background.wav ]; then
+            echo "✓ Background audio found"
+          fi
+
+          echo ""
+          echo "===== FINAL WEB FILES ====="
+          find www -type f | sort
+
+      # =========================================================
+      # 13. BUILD APK
+      # =========================================================
+      - name: Build APK
+        working-directory: android
+        shell: bash
+        run: |
+          set -e
+
+          chmod +x gradlew
+
+          ./gradlew assembleDebug \
+            --no-daemon \
+            --stacktrace
+
+      # =========================================================
+      # 14. COPY APK
+      # =========================================================
+      - name: Rename APK
+        shell: bash
+        run: |
+          set -e
+
+          test -f android/app/build/outputs/apk/debug/app-debug.apk
+
+          cp \
+            android/app/build/outputs/apk/debug/app-debug.apk \
+            JUSTINEHUB.apk
+
+          ls -lh JUSTINEHUB.apk
+
+      # =========================================================
+      # 15. UPLOAD APK AS ACTION ARTIFACT
+      # =========================================================
+      - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: JustineHub-APK
-          path: app/build/outputs/apk/debug/app-debug.apk
+          name: JUSTINEHUB-APK
+          path: JUSTINEHUB.apk
+          if-no-files-found: error
+
+      # =========================================================
+      # 16. CREATE / UPDATE GITHUB RELEASE
+      # =========================================================
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: justinehub-latest
+          name: JUSTINEHUB Latest
+          body: |
+            JUSTINEHUB latest APK.
+
+            Updated TineHub + TineWorld build.
+            Android APK generated automatically by GitHub Actions.
+
+            Download JUSTINEHUB.apk below.
+          files: JUSTINEHUB.apk
+          make_latest: true
+          prerelease: false
+          overwrite_files: true
