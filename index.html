@@ -1331,32 +1331,450 @@ function bmRender(){const c=BM.ctx;if(!c)return;c.clearRect(0,0,1000,600);const 
 function drawFighter(c,p){c.save();c.translate(p.x,p.y);c.rotate(p.angle);c.fillStyle=p.hit?'#fff':'#e5e7eb';c.beginPath();c.arc(0,0,p.r,0,Math.PI*2);c.fill();c.fillStyle=p.color==='blue'?'#0284c7':'#e11d48';c.fillRect(-14,-18,28,36);c.fillStyle='#111827';c.fillRect(8,-5,34,10);c.restore();c.fillStyle='#111827';c.fillRect(p.x-32,p.y-p.r-16,64,7);c.fillStyle=p.color==='blue'?'#22c55e':'#ef4444';c.fillRect(p.x-32,p.y-p.r-16,64*Math.max(0,p.hp/100),7);}
 window.openBrawlMasters=bmOpen;window.closeBrawlMasters=bmClose;window.bmSetMode=bmSetMode;window.bmReset=bmReset;
 })();
-</script><script>
+</script>
+<script>
 (function(){
 'use strict';
 const P={c:null,x:null,ctx:null,running:false,raf:0,last:0,balls:[],turn:0,power:0,charging:false,aim:0,score:[0,0],shotCount:0,drag:false};
 const E=id=>document.getElementById(id),C=(v,a,b)=>Math.max(a,Math.min(b,v));
 const W=1100,H=620,T={x:55,y:55,w:990,h:510,r:30};
-function openPoolGame(){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));E('poolPage').classList.add('active');if(!P.c){P.c=E('poolCanvas');P.ctx=P.c.getContext('2d');poolBind();}poolReset();}
-function closePoolGame(){P.running=false;cancelAnimationFrame(P.raf);E('poolPage').classList.remove('active');E('games').classList.add('active');}
-function ball(n,x,y,color,type){return{n,x,y,vx:0,vy:0,r:12,color,type,active:true};}
-function poolReset(){P.running=true;P.last=performance.now();P.turn=0;P.score=[0,0];P.shotCount=0;P.power=0;P.charging=false;P.drag=false;P.aim=0;P.balls=[];P.balls.push(ball(0,300,310,'#f8fafc','cue'));let rows=[[1,'#f59e0b','solid'],[2,'#2563eb','solid'],[3,'#ef4444','solid'],[4,'#7c3aed','solid'],[5,'#f97316','solid'],[6,'#16a34a','solid'],[7,'#991b1b','solid'],[8,'#111827','eight'],[9,'#f59e0b','stripe'],[10,'#2563eb','stripe'],[11,'#ef4444','stripe'],[12,'#7c3aed','stripe'],[13,'#f97316','stripe'],[14,'#16a34a','stripe'],[15,'#991b1b','stripe']];let sx=760,sy=310,i=0;for(let row=0;row<5;row++){for(let col=0;col<=row;col++){const d=rows[i++];P.balls.push(ball(d[0],sx+row*22,sy+(col-row/2)*25,d[1],d[2]))}}poolMsg('Player 1: aim at the rack.');poolDraw();cancelAnimationFrame(P.raf);P.raf=requestAnimationFrame(poolLoop);}
-function poolBind(){const c=P.c;c.addEventListener('pointerdown',e=>{if(!P.running||P.charging)return;P.drag=true;poolAim(e);c.setPointerCapture?.(e.pointerId)});c.addEventListener('pointermove',e=>{if(P.drag)poolAim(e)});['pointerup','pointercancel','lostpointercapture'].forEach(ev=>c.addEventListener(ev,()=>P.drag=false));const b=E('poolShoot');b.addEventListener('pointerdown',e=>{e.preventDefault();if(P.running&&!P.charging){P.charging=true;P.power=.05;b.setPointerCapture?.(e.pointerId)}});b.addEventListener('pointerup',e=>{e.preventDefault();poolStrike();});b.addEventListener('pointercancel',poolStrike);b.addEventListener('pointerleave',e=>{if(e.buttons)poolStrike()});}
-function poolAim(e){const r=P.c.getBoundingClientRect(),x=(e.clientX-r.left)*W/r.width,y=(e.clientY-r.top)*H/r.height,q=P.balls[0];P.aim=Math.atan2(y-q.y,x-q.x);}
-function poolStrike(){if(!P.charging)return;P.charging=false;const q=P.balls[0];if(!q||!q.active)return;const speed=120+P.power*900;q.vx=Math.cos(P.aim)*speed;q.vy=Math.sin(P.aim)*speed;P.power=0;P.shotCount++;poolMsg(`Player ${P.turn+1} shot. Waiting for balls to stop…`);}
-function poolLoop(now){if(!P.running)return;const dt=Math.min(.025,(now-P.last)/1000||.016);P.last=now;if(P.charging){P.power=C(P.power+dt*.48,0,1);E('poolPowerBar').style.width=(P.power*100)+'%';}let moving=false;for(const b of P.balls){if(!b.active)continue;b.x+=b.vx*dt;b.y+=b.vy*dt;b.vx*=Math.pow(.987,dt*60);b.vy*=Math.pow(.987,dt*60);if(Math.hypot(b.vx,b.vy)>.5)moving=true;else{b.vx=0;b.vy=0;}
- if(b.x<T.x+8&&b.vx<0){b.x=T.x+8;b.vx*=-.86}if(b.x>T.x+T.w-8&&b.vx>0){b.x=T.x+T.w-8;b.vx*=-.86}if(b.y<T.y+8&&b.vy<0){b.y=T.y+8;b.vy*=-.86}if(b.y>T.y+T.h-8&&b.vy>0){b.y=T.y+T.h-8;b.vy*=-.86}}
- for(let i=0;i<P.balls.length;i++)for(let j=i+1;j<P.balls.length;j++)collide(P.balls[i],P.balls[j]);
- for(const b of P.balls){if(!b.active)continue;const pockets=[[55,55],[550,55],[1045,55],[55,565],[550,565],[1045,565]];for(const [px,py] of pockets){if(Math.hypot(b.x-px,b.y-py)<28){b.active=false;b.vx=b.vy=0;if(b.n===0){poolMsg('Scratch! Cue ball returned. Player switches.');b.active=true;b.x=300;b.y=310;}else if(b.n===8){poolMsg('8 Ball pocketed — game over!');P.running=false;setTimeout(()=>{alert(`Player ${P.turn+1} wins the rack!`);poolReset()},600)}else{P.score[P.turn]++;poolMsg(`Player ${P.turn+1} pocketed ball #${b.n}. Keep shooting.`);}}}}
- if(!moving&&!P.charging&&P.shotCount>0){P.shotCount=0;P.turn=1-P.turn;E('poolTurn').textContent='PLAYER '+(P.turn+1);E('poolTurnDot').textContent='●';E('poolP1Score').textContent=P.score[0]+' balls';E('poolP2Score').textContent=P.score[1]+' balls';}
- poolDraw();P.raf=requestAnimationFrame(poolLoop);}
-function collide(a,b){if(!a.active||!b.active)return;let dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy),min=a.r+b.r;if(d===0||d>=min)return;let nx=dx/d,ny=dy/d,over=min-d;a.x-=nx*over/2;a.y-=ny*over/2;b.x+=nx*over/2;b.y+=ny*over/2;let rvx=b.vx-a.vx,rvy=b.vy-a.vy,rel=rvx*nx+rvy*ny;if(rel>0)return;let imp=-rel*.96;a.vx-=imp*nx;a.vy-=imp*ny;b.vx+=imp*nx;b.vy+=imp*ny;}
-function poolMsg(s){if(E('poolMessage'))E('poolMessage').textContent=s}
-function poolDraw(){const c=P.ctx;c.clearRect(0,0,W,H);c.fillStyle='#0b1220';c.fillRect(0,0,W,H);c.fillStyle='#7c4a21';c.fillRect(18,18,W-36,H-36);c.fillStyle='#14532d';c.fillRect(T.x,T.y,T.w,T.h);c.strokeStyle='#3f2a17';c.lineWidth=8;c.strokeRect(T.x,T.y,T.w,T.h);const pockets=[[55,55],[550,55],[1045,55],[55,565],[550,565],[1045,565]];for(const [x,y] of pockets){c.beginPath();c.arc(x,y,25,0,Math.PI*2);c.fillStyle='#020617';c.fill();c.beginPath();c.arc(x,y,29,0,Math.PI*2);c.strokeStyle='#a16207';c.lineWidth=5;c.stroke();}
- const q=P.balls[0];if(q?.active&&!P.charging){c.save();c.setLineDash([8,8]);c.strokeStyle='rgba(255,255,255,.55)';c.beginPath();c.moveTo(q.x,q.y);c.lineTo(q.x+Math.cos(P.aim)*260,q.y+Math.sin(P.aim)*260);c.stroke();c.restore();}for(const b of P.balls){if(!b.active)continue;c.beginPath();c.arc(b.x+2,b.y+3,b.r,0,Math.PI*2);c.fillStyle='rgba(0,0,0,.28)';c.fill();c.beginPath();c.arc(b.x,b.y,b.r,0,Math.PI*2);c.fillStyle=b.color;c.fill();if(b.type==='stripe'){c.save();c.beginPath();c.arc(b.x,b.y,b.r,0,Math.PI*2);c.clip();c.fillStyle='#f8fafc';c.fillRect(b.x-b.r,b.y-4,b.r*2,8);c.restore()}c.strokeStyle='#fff';c.lineWidth=1;c.stroke();c.fillStyle=b.n===0?'#111':'#fff';c.font='bold 8px sans-serif';c.textAlign='center';c.textBaseline='middle';c.fillText(b.n,b.x,b.y)}E('poolPowerBar').style.width=(P.power*100)+'%';}
-window.openPoolGame=openPoolGame;window.closePoolGame=closePoolGame;window.poolReset=poolReset;
+
+function openPoolGame(){
+document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+E('poolPage').classList.add('active');
+if(!P.c){
+P.c=E('poolCanvas');
+P.ctx=P.c.getContext('2d');
+poolBind();
+}
+poolReset();
+}
+
+function closePoolGame(){
+P.running=false;
+cancelAnimationFrame(P.raf);
+E('poolPage').classList.remove('active');
+E('games').classList.add('active');
+}
+
+function ball(n,x,y,color,type){
+return{n,x,y,vx:0,vy:0,r:12,color,type,active:true};
+}
+
+function poolReset(){
+P.running=true;
+P.last=performance.now();
+P.turn=0;
+P.score=[0,0];
+P.shotCount=0;
+P.power=0;
+P.charging=false;
+P.drag=false;
+P.aim=0;
+P.balls=[];
+P.balls.push(ball(0,300,310,'#f8fafc','cue'));
+
+let rows=[
+[1,'#f59e0b','solid'],
+[2,'#2563eb','solid'],
+[3,'#ef4444','solid'],
+[4,'#7c3aed','solid'],
+[5,'#f97316','solid'],
+[6,'#16a34a','solid'],
+[7,'#991b1b','solid'],
+[8,'#111827','eight'],
+[9,'#f59e0b','stripe'],
+[10,'#2563eb','stripe'],
+[11,'#ef4444','stripe'],
+[12,'#7c3aed','stripe'],
+[13,'#f97316','stripe'],
+[14,'#16a34a','stripe'],
+[15,'#991b1b','stripe']
+];
+
+let sx=760,sy=310,i=0;
+
+for(let row=0;row<5;row++){
+for(let col=0;col<=row;col++){
+const d=rows[i++];
+P.balls.push(
+ball(d[0],sx+row*22,sy+(col-row/2)*25,d[1],d[2])
+);
+}
+}
+
+poolMsg('Player 1: aim at the rack.');
+poolDraw();
+cancelAnimationFrame(P.raf);
+P.raf=requestAnimationFrame(poolLoop);
+}
+
+function poolBind(){
+const c=P.c;
+
+c.addEventListener('pointerdown',e=>{
+if(!P.running||P.charging)return;
+P.drag=true;
+poolAim(e);
+c.setPointerCapture?.(e.pointerId);
+});
+
+c.addEventListener('pointermove',e=>{
+if(P.drag)poolAim(e);
+});
+
+['pointerup','pointercancel','lostpointercapture']
+.forEach(ev=>c.addEventListener(ev,()=>P.drag=false));
+
+const b=E('poolShoot');
+
+b.addEventListener('pointerdown',e=>{
+e.preventDefault();
+if(P.running&&!P.charging){
+P.charging=true;
+P.power=.05;
+b.setPointerCapture?.(e.pointerId);
+}
+});
+
+b.addEventListener('pointerup',e=>{
+e.preventDefault();
+poolStrike();
+});
+
+b.addEventListener('pointercancel',poolStrike);
+
+b.addEventListener('pointerleave',e=>{
+if(e.buttons)poolStrike();
+});
+}
+
+function poolAim(e){
+const r=P.c.getBoundingClientRect();
+const x=(e.clientX-r.left)*W/r.width;
+const y=(e.clientY-r.top)*H/r.height;
+const q=P.balls[0];
+P.aim=Math.atan2(y-q.y,x-q.x);
+}
+
+function poolStrike(){
+if(!P.charging)return;
+
+P.charging=false;
+
+const q=P.balls[0];
+if(!q||!q.active)return;
+
+const speed=120+P.power*900;
+
+q.vx=Math.cos(P.aim)*speed;
+q.vy=Math.sin(P.aim)*speed;
+
+P.power=0;
+P.shotCount++;
+
+poolMsg(
+`Player ${P.turn+1} shot. Waiting for balls to stop…`
+);
+}
+
+function poolLoop(now){
+if(!P.running)return;
+
+const dt=Math.min(
+.025,
+(now-P.last)/1000||.016
+);
+
+P.last=now;
+
+if(P.charging){
+P.power=C(P.power+dt*.48,0,1);
+E('poolPowerBar').style.width=(P.power*100)+'%';
+}
+
+let moving=false;
+
+for(const b of P.balls){
+if(!b.active)continue;
+
+b.x+=b.vx*dt;
+b.y+=b.vy*dt;
+
+b.vx*=Math.pow(.987,dt*60);
+b.vy*=Math.pow(.987,dt*60);
+
+if(Math.hypot(b.vx,b.vy)>.5){
+moving=true;
+}else{
+b.vx=0;
+b.vy=0;
+}
+
+if(b.x<T.x+8&&b.vx<0){
+b.x=T.x+8;
+b.vx*=-.86;
+}
+
+if(b.x>T.x+T.w-8&&b.vx>0){
+b.x=T.x+T.w-8;
+b.vx*=-.86;
+}
+
+if(b.y<T.y+8&&b.vy<0){
+b.y=T.y+8;
+b.vy*=-.86;
+}
+
+if(b.y>T.y+T.h-8&&b.vy>0){
+b.y=T.y+T.h-8;
+b.vy*=-.86;
+}
+}
+
+for(let i=0;i<P.balls.length;i++)
+for(let j=i+1;j<P.balls.length;j++)
+collide(P.balls[i],P.balls[j]);
+
+for(const b of P.balls){
+if(!b.active)continue;
+
+const pockets=[
+[55,55],
+[550,55],
+[1045,55],
+[55,565],
+[550,565],
+[1045,565]
+];
+
+for(const [px,py] of pockets){
+
+if(Math.hypot(b.x-px,b.y-py)<28){
+
+b.active=false;
+b.vx=b.vy=0;
+
+if(b.n===0){
+
+poolMsg(
+'Scratch! Cue ball returned. Player switches.'
+);
+
+b.active=true;
+b.x=300;
+b.y=310;
+
+}else if(b.n===8){
+
+poolMsg(
+'8 Ball pocketed — game over!'
+);
+
+P.running=false;
+
+setTimeout(()=>{
+alert(
+`Player ${P.turn+1} wins the rack!`
+);
+poolReset();
+},600);
+
+}else{
+
+P.score[P.turn]++;
+
+poolMsg(
+`Player ${P.turn+1} pocketed ball #${b.n}. Keep shooting.`
+);
+
+}
+}
+}
+}
+
+if(!moving&&!P.charging&&P.shotCount>0){
+
+P.shotCount=0;
+P.turn=1-P.turn;
+
+E('poolTurn').textContent=
+'PLAYER '+(P.turn+1);
+
+E('poolTurnDot').textContent='●';
+
+E('poolP1Score').textContent=
+P.score[0]+' balls';
+
+E('poolP2Score').textContent=
+P.score[1]+' balls';
+}
+
+poolDraw();
+
+P.raf=requestAnimationFrame(poolLoop);
+}
+
+function collide(a,b){
+if(!a.active||!b.active)return;
+
+let dx=b.x-a.x,
+dy=b.y-a.y,
+d=Math.hypot(dx,dy),
+min=a.r+b.r;
+
+if(d===0||d>=min)return;
+
+let nx=dx/d,
+ny=dy/d,
+over=min-d;
+
+a.x-=nx*over/2;
+a.y-=ny*over/2;
+
+b.x+=nx*over/2;
+b.y+=ny*over/2;
+
+let rvx=b.vx-a.vx,
+rvy=b.vy-a.vy,
+rel=rvx*nx+rvy*ny;
+
+if(rel>0)return;
+
+let imp=-rel*.96;
+
+a.vx-=imp*nx;
+a.vy-=imp*ny;
+
+b.vx+=imp*nx;
+b.vy+=imp*ny;
+}
+
+function poolMsg(s){
+if(E('poolMessage'))
+E('poolMessage').textContent=s;
+}
+
+function poolDraw(){
+
+const c=P.ctx;
+
+c.clearRect(0,0,W,H);
+
+c.fillStyle='#0b1220';
+c.fillRect(0,0,W,H);
+
+c.fillStyle='#7c4a21';
+c.fillRect(18,18,W-36,H-36);
+
+c.fillStyle='#14532d';
+c.fillRect(T.x,T.y,T.w,T.h);
+
+c.strokeStyle='#3f2a17';
+c.lineWidth=8;
+c.strokeRect(T.x,T.y,T.w,T.h);
+
+const pockets=[
+[55,55],
+[550,55],
+[1045,55],
+[55,565],
+[550,565],
+[1045,565]
+];
+
+for(const [x,y] of pockets){
+
+c.beginPath();
+c.arc(x,y,25,0,Math.PI*2);
+c.fillStyle='#020617';
+c.fill();
+
+c.beginPath();
+c.arc(x,y,29,0,Math.PI*2);
+c.strokeStyle='#a16207';
+c.lineWidth=5;
+c.stroke();
+}
+
+const q=P.balls[0];
+
+if(q?.active&&!P.charging){
+
+c.save();
+c.setLineDash([8,8]);
+c.strokeStyle='rgba(255,255,255,.55)';
+
+c.beginPath();
+c.moveTo(q.x,q.y);
+c.lineTo(
+q.x+Math.cos(P.aim)*260,
+q.y+Math.sin(P.aim)*260
+);
+
+c.stroke();
+c.restore();
+}
+
+for(const b of P.balls){
+
+if(!b.active)continue;
+
+c.beginPath();
+c.arc(b.x+2,b.y+3,b.r,0,Math.PI*2);
+c.fillStyle='rgba(0,0,0,.28)';
+c.fill();
+
+c.beginPath();
+c.arc(b.x,b.y,b.r,0,Math.PI*2);
+c.fillStyle=b.color;
+c.fill();
+
+if(b.type==='stripe'){
+
+c.save();
+c.beginPath();
+c.arc(b.x,b.y,b.r,0,Math.PI*2);
+c.clip();
+
+c.fillStyle='#f8fafc';
+c.fillRect(
+b.x-b.r,
+b.y-4,
+b.r*2,
+8
+);
+
+c.restore();
+}
+
+c.strokeStyle='#fff';
+c.lineWidth=1;
+c.stroke();
+
+c.fillStyle=b.n===0?'#111':'#fff';
+c.font='bold 8px sans-serif';
+c.textAlign='center';
+c.textBaseline='middle';
+
+c.fillText(
+b.n,
+b.x,
+b.y
+);
+}
+
+E('poolPowerBar').style.width=
+(P.power*100)+'%';
+}
+
+window.openPoolGame=openPoolGame;
+window.closePoolGame=closePoolGame;
+window.poolReset=poolReset;
+
 })();
 </script>
+
 <script src="app.js"></script>
 <script src="tineworld_v5.js"></script>
 </body>
