@@ -1331,7 +1331,7 @@ function bmRender(){const c=BM.ctx;if(!c)return;c.clearRect(0,0,1000,600);const 
 function drawFighter(c,p){c.save();c.translate(p.x,p.y);c.rotate(p.angle);c.fillStyle=p.hit?'#fff':'#e5e7eb';c.beginPath();c.arc(0,0,p.r,0,Math.PI*2);c.fill();c.fillStyle=p.color==='blue'?'#0284c7':'#e11d48';c.fillRect(-14,-18,28,36);c.fillStyle='#111827';c.fillRect(8,-5,34,10);c.restore();c.fillStyle='#111827';c.fillRect(p.x-32,p.y-p.r-16,64,7);c.fillStyle=p.color==='blue'?'#22c55e':'#ef4444';c.fillRect(p.x-32,p.y-p.r-16,64*Math.max(0,p.hp/100),7);}
 window.openBrawlMasters=bmOpen;window.closeBrawlMasters=bmClose;window.bmSetMode=bmSetMode;window.bmReset=bmReset;
 })();
-</script>\n<script>
+</script><script>
 (function(){
 'use strict';
 const P={c:null,x:null,ctx:null,running:false,raf:0,last:0,balls:[],turn:0,power:0,charging:false,aim:0,score:[0,0],shotCount:0,drag:false};
