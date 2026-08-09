@@ -1,0 +1,1363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<meta name="theme-color" content="#10101a">
+<title>𝐓𝐈𝐍𝐄⚡𝐇𝐔𝐁</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="lockScreen" class="screen">
+  <div class="glass lockBox">
+    <img class="logoImg" src="justine-hub-logo.png" alt="Justine Hub logo">
+    <h1>𝐉𝐔𝐒𝐓𝐈𝐍𝐄⚡𝐇𝐔𝐁</h1><p id="lockSubtitle">Create your password</p>
+    <input id="passwordInput" type="password" placeholder="Password" autocomplete="off">
+    <button id="unlockBtn">Continue</button>
+    <div id="error"></div>
+  </div>
+</div>
+
+<div id="app" class="hidden">
+<header class="topbar">
+  <div class="brand"><img class="brandLogo" src="justine-hub-logo.png" alt="Justine Hub"><div><h1>𝐓𝐈𝐍𝐄⚡𝐇𝐔𝐁</h1><span id="greeting">Offline personal hub</span></div></div>
+  <button class="iconBtn" onclick="showPage('settings')">⚙️</button>
+</header>
+
+<main id="pages">
+<section id="home" class="page active">
+  <div class="hero glass"><div><small>WELCOME BACK</small><h2 id="homeDate">Today</h2><p id="taskSummary">0 tasks today</p></div><img class="heroLogo" src="justine-hub-logo.png" alt="Justine Hub"></div>
+  <div class="grid2">
+    <button class="tile glass" onclick="showPage('calendar')">📅<b>Calendar</b><span id="homeCalendar">Tasks & events</span></button>
+    <button class="tile glass" onclick="showPage('music')">🎵<b>Music</b><span id="homeMusic">0 songs</span></button>
+    <button class="tile glass" onclick="showPage('gallery')">🖼️<b>Gallery</b><span id="homeGallery">0 photos</span></button>
+    <button class="tile glass" onclick="showPage('apps')">📱<b>Apps</b><span>App shortcuts</span></button>
+    <button class="tile glass" onclick="downloadApp()">⬇️<b>Download App</b><span>Get Justine Hub APK</span></button>
+    <button class="tile glass" onclick="showPage('notes')">📝<b>Notes</b><span>Quick notes</span></button>
+    <button class="tile glass" onclick="showPage('tools')">🧰<b>Tools</b><span>Calculator & links</span></button>
+    <button class="tile glass" onclick="showPage('games')">🎮<b>Offline Games</b><span>Play games offline</span></button>
+  </div>
+  <div class="card glass"><h3>⚡ Quick actions</h3><div class="quick">
+    <button onclick="quickAddTask()">＋ Task</button><button onclick="document.getElementById('galleryInput').click()">＋ Photo</button><button onclick="document.getElementById('musicInput').click()">＋ Music</button>
+  </div></div>
+</section>
+
+<section id="calendar" class="page">
+  <div class="sectionHead"><h2>📅 Calendar</h2><button onclick="todayCalendar()">Today</button></div>
+  <div class="card glass calendarHead"><button onclick="changeMonth(-1)">‹</button><h3 id="monthTitle"></h3><button onclick="changeMonth(1)">›</button></div>
+  <div id="calendarGrid" class="calendarGrid"></div>
+  <div class="card glass"><div class="row"><h3 id="selectedDateTitle">Tasks</h3><button onclick="addTask()">＋ Add</button></div><div class="search"><span>🔎</span><input id="taskSearch" oninput="renderTasks()" placeholder="Search tasks..."></div><div id="taskList"></div></div>
+</section>
+
+<section id="music" class="page">
+  <div class="sectionHead"><h2>🎵 Music</h2><label class="primaryBtn">＋ Add music<input type="file" id="musicInput" accept="audio/*" multiple hidden></label></div>
+  <div class="card glass player"><div id="songTitle">No song selected</div><audio id="audio"></audio><input id="progress" type="range" min="0" max="100" value="0"><div class="playerBtns"><button onclick="previousSong()">⏮</button><button class="play" id="playBtn" onclick="togglePlay()">▶</button><button onclick="nextSong()">⏭</button><button onclick="toggleShuffle()">🔀</button></div><label>Volume <input id="volume" type="range" min="0" max="100" value="100"></label></div>
+  <div class="search glass"><span>🔎</span><input id="musicSearch" oninput="renderSongs()" placeholder="Search music..."></div><div id="playlist"></div><button class="danger wide" onclick="clearMusic()">Clear music library</button>
+</section>
+
+<section id="gallery" class="page">
+  <div class="sectionHead"><h2>🖼️ My Gallery</h2><label class="primaryBtn">＋ Add photos<input type="file" id="galleryInput" accept="image/*" multiple hidden></label></div>
+  <div class="search glass"><span>🔎</span><input id="gallerySearch" oninput="renderGallery()" placeholder="Search photos..."></div>
+  <div id="galleryGrid" class="galleryGrid"></div>
+</section>
+
+<section id="apps" class="page">
+  <div class="sectionHead"><h2>📱 My Apps</h2><div class="row"><button onclick="addApp()">＋ Add App</button><button onclick="refreshApps()">Refresh</button></div></div>
+  <div class="search glass"><span>🔎</span><input id="appSearch" oninput="renderApps()" placeholder="Search apps..."></div>
+  <div id="appList" class="appList"></div><div class="card glass"><h3>➕ Add App</h3><div class="row"><input id="appName" class="textInput" placeholder="App name"><input id="appPackage" class="textInput" placeholder="Package name (optional)"></div><div class="row"><input id="appUrl" class="textInput" placeholder="App URL (optional, e.g. https://...)"><button onclick="saveApp()">💾 Add App</button></div><p class="hint">Add an app shortcut manually. In the Android APK, use the package name to launch an installed app.</p></div>
+  <p class="hint">The Android APK can list launchable apps installed on your phone. A web-only preview cannot access the Android app list.</p>
+  <div class="card glass"><h3>⬇️ Justine Hub App</h3><p class="hint">Download the latest APK from your configured app link.</p><button class="primaryBtn" onclick="downloadApp()">⬇️ Download Justine Hub APK</button></div>
+</section>
+
+<section id="notes" class="page">
+  <div class="sectionHead"><h2>📝 Notes</h2><button onclick="newNote()">＋ New</button></div>
+  <div class="search glass"><span>🔎</span><input id="noteSearch" oninput="renderNotes()" placeholder="Search notes..."></div>
+  <div id="notesList"></div>
+  <div class="card glass"><input id="noteTitle" class="textInput" placeholder="Note title"><textarea id="notesText" placeholder="Write your note..."></textarea><div class="row"><button onclick="saveNote()">💾 Save</button><button class="danger" onclick="deleteCurrentNote()">Delete</button></div></div>
+</section>
+
+<section id="tools" class="page">
+  <h2>🧰 Tools</h2>
+  <div class="card glass"><h3>🧮 Calculator</h3><input id="calcDisplay" readonly value="0"><div class="calcButtons">
+  <button onclick="clearCalc()">AC</button><button onclick="delCalc()">⌫</button><button onclick="calcInput('%')">%</button><button onclick="calcInput('/')">÷</button>
+  <button onclick="calcInput('7')">7</button><button onclick="calcInput('8')">8</button><button onclick="calcInput('9')">9</button><button onclick="calcInput('*')">×</button>
+  <button onclick="calcInput('4')">4</button><button onclick="calcInput('5')">5</button><button onclick="calcInput('6')">6</button><button onclick="calcInput('-')">−</button>
+  <button onclick="calcInput('1')">1</button><button onclick="calcInput('2')">2</button><button onclick="calcInput('3')">3</button><button onclick="calcInput('+')">+</button>
+  <button onclick="calcInput('0')">0</button><button onclick="calcInput('.')">.</button><button onclick="calculate()" class="wideCalc">=</button></div></div>
+  <div class="card glass"><h3>🔗 My Links</h3><div class="row"><input id="linkName" class="textInput" placeholder="Name"><input id="linkURL" class="textInput" placeholder="https://..."><button onclick="addLink()">Add</button></div><div id="linkList"></div></div>
+</section>
+
+<section id="games" class="page">
+  <div class="th-hub-toolbar">
+    <div class="th-hub-brand"><span class="th-hub-orb">🎮</span><div><b>TineHub Game Center</b><small id="thHubGreeting">Ready to play</small></div></div>
+    <div class="th-hub-actions">
+      <button onclick="thOpenHubModal('profile')">👤 Profile</button>
+      <button onclick="thOpenHubModal('stats')">📊 Stats</button>
+      <button onclick="thOpenHubModal('achievements')">🏆 Achievements</button>
+      <button onclick="thOpenHubModal('daily')">🎯 Daily</button>
+      <button onclick="thOpenHubModal('settings')">⚙️ Settings</button>
+    </div>
+  </div>
+  <div class="th-hub-strip">
+    <div>🪙 <b id="thHubCoins">500</b> <span>TineCoins</span></div>
+    <div>⭐ Lv <b id="thHubLevel">1</b></div>
+    <div>🔥 <b id="thHubStreak">0</b> day streak</div>
+  </div>
+  <div class="th-featured-row">
+    <button class="th-featured-card" onclick="thOpenWorldSafe()"><span>🌍</span><div><b>TineWorld</b><small>Explore • mine • craft • build • survive</small></div><em>NEW</em></button>
+    <button class="th-featured-card" onclick="thOpenActivitiesSafe()"><span>🎯</span><div><b>Activities</b><small>Fishing • farming • treasure • daily tasks</small></div><em>PLAY</em></button>
+  </div>
+  <div class="th-game-tools">
+    <input id="thGameSearch" placeholder="🔍 Search games..." oninput="thFilterGames()">
+    <select id="thGameCategory" onchange="thFilterGames()"><option value="all">All categories</option><option value="strategy">Strategy</option><option value="arcade">Arcade</option><option value="puzzle">Puzzle</option><option value="classic">Classic</option><option value="casual">Casual</option></select>
+    <button id="thFavOnly" onclick="thToggleFavOnly()">☆ Favorites</button>
+  </div>
+  <div class="sectionHead"><h2>🎮 Offline Games</h2></div>
+  <div id="offlineGameSelection" class="grid2">
+    <button class="tile glass" onclick="openOfflineChess()" data-game="Chess" data-category="strategy" data-fav="0">♟️<b>Chess</b><span>2-player offline chess</span></button>
+    <button class="tile glass" onclick="openOfflineScatter()" data-game="Lucky Scatter" data-category="casual" data-fav="0">🎰<b>Lucky Scatter</b><span>Virtual coins only</span></button>
+    <button class="tile glass" onclick="thOpenDiceSafe()" data-game="Dice Odd / Even" data-category="casual" data-fav="0">🎲<b>Dice Odd / Even</b><span>Virtual coins only</span></button>
+    <button class="tile glass" onclick="openOfflineColor()" data-game="Color Rush" data-category="casual" data-fav="0">🎨<b>Color Rush</b><span>Pick a color • virtual coins</span></button>
+    <button class="tile glass" onclick="openOfflineSnake()" data-game="Snake" data-category="arcade" data-fav="0">🐍<b>Snake</b><span>Classic arcade</span></button>
+    <button class="tile glass" onclick="openOfflineTicTacToe()" data-game="Tic-Tac-Toe" data-category="classic" data-fav="0">❌⭕<b>Tic-Tac-Toe</b><span>2-player / AI</span></button>
+    <button class="tile glass" onclick="openOffline2048()" data-game="2048" data-category="puzzle" data-fav="0">🔢<b>2048</b><span>Swipe to combine</span></button>
+    <button class="tile glass" onclick="openOfflineMines()" data-game="Minesweeper" data-category="puzzle" data-fav="0">💣<b>Minesweeper</b><span>Find the safe tiles</span></button>
+    <button class="tile glass" onclick="openOfflineTetris()" data-game="Tetris" data-category="classic" data-fav="0">🧱<b>Tetris</b><span>Clear falling blocks</span></button>
+    <button class="tile glass" onclick="openOfflineSudoku()" data-game="Sudoku" data-category="puzzle" data-fav="0">🧩<b>Sudoku</b><span>Quick puzzle</span></button>
+    <button class="tile glass" onclick="openOfflineMemory()" data-game="Memory Cards" data-category="casual" data-fav="0">🃏<b>Memory Cards</b><span>Match pairs</span></button>
+    <button class="tile glass" onclick="openOfflinePong()" data-game="Pong" data-category="arcade" data-fav="0">🏓<b>Pong</b><span>Beat the AI</span></button>
+    <button class="tile glass" onclick="openOfflineRacer()" data-game="Endless Racer" data-category="arcade" data-fav="0">🏎️<b>Endless Racer</b><span>Avoid traffic</span></button>
+    <button class="tile glass" onclick="openBrawlMasters()" data-game="Brawlmasters Shooting" data-category="arcade" data-fav="0">🎯<b>Brawlmasters Shooting</b><span>1v1 local • 1v1 vs AI</span></button>
+    <button class="tile glass" onclick="openLucky9()" data-game="Lucky 9" data-category="classic" data-fav="0">🃏<b>Lucky 9</b><span>2–4 players • real 52-card deck</span></button>
+    <button class="tile glass" onclick="openPoolGame()" data-game="8 Ball Pool" data-category="classic" data-fav="0">🎱<b>8 Ball Pool</b><span>Realistic offline physics • 2 players</span></button>
+  </div>
+</section>
+
+<section id="tineWorldPage" class="page">
+  <div class="th-wa-wrap th-world-pro">
+    <div class="th-wa-head">
+      <button type="button" class="th-wa-back" onclick="twFixBack()">← Games</button>
+      <div><b>🌍 TineWorld</b><small>Offline sandbox • explore • mine • build • survive</small></div>
+      <div class="tw-head-actions">
+        <button type="button" class="tw-landscape-btn" id="twLandscapeBtn" onclick="twToggleLandscape()" aria-label="Toggle landscape mode">📱↔️ <span>Landscape</span></button>
+        <button type="button" class="tw-landscape-btn tw-fullscreen-btn" id="twFullscreenBtn" onclick="twToggleFullscreen()" aria-label="Toggle fullscreen">⛶ <span>Fullscreen</span></button>
+        <span id="twFixSave">Ready</span>
+      </div>
+    </div>
+
+    <div class="tw-fix-hud">
+      <span>❤️ <b id="twFixHp">100</b></span>
+      <span>🪙 <b id="twFixCoins">0</b></span>
+      <span>🪵 <b id="twFixWood">0</b></span>
+      <span>🪨 <b id="twFixStone">0</b></span>
+      <span>💎 <b id="twFixOre">0</b></span>
+      <span>☀️ <b id="twFixDay">Day 1 • 08:00</b></span>
+    </div>
+
+    <div class="tw-fix-stage">
+      <canvas id="twFixCanvas" width="960" height="540" aria-label="TineWorld game map"></canvas>
+    </div>
+    <div class="tw-world-status" id="twFixStatus">Explore the world. Use the controls to move, mine and build.</div>
+
+
+    <div class="tw-world-panels">
+      <div class="tw-world-card">
+        <h3>🎒 Inventory</h3>
+        <div id="twFixInventory" class="tw-inventory"></div>
+      </div>
+      <div class="tw-world-card">
+        <h3>🔨 Crafting</h3>
+        <div class="tw-craft-grid">
+          <button onclick="twFixCraft('pickaxe')">⛏️ Pickaxe <small>3 wood + 2 stone</small></button>
+          <button onclick="twFixCraft('sword')">⚔️ Sword <small>2 ore + 1 wood</small></button>
+          <button onclick="twFixCraft('camp')">⛺ Camp <small>5 wood + 2 stone</small></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="tw-fix-actions tw-fix-bottom">
+      <button type="button" onclick="twFixCollect()">🪙 Collect</button>
+      <button type="button" onclick="twFixNew()">🌱 New World</button>
+      <button type="button" onclick="twFixSaveWorld()">💾 Save</button>
+      <button type="button" onclick="twFixBack()">← Back</button>
+    </div>
+    <p class="tw-fix-help">Everything is offline and saved locally on this device. Keyboard: WASD / arrows • Space = mine.</p>
+  </div>
+</section>
+
+<section id="tineActivitiesPage" class="page">
+  <div class="th-wa-wrap">
+    <div class="th-wa-head">
+      <button type="button" class="th-wa-back" onclick="taFixBack()">← Games</button>
+      <div><b>🎯 Activities</b><small>Offline activities • rewards • progression</small></div>
+      <span>Offline</span>
+    </div>
+
+    <div class="ta-fix-grid">
+      <button type="button" onclick="taFixPlay('fishing')"><span>🎣</span><b>Fishing</b><small>Catch fish and earn coins</small></button>
+      <button type="button" onclick="taFixPlay('farm')"><span>🌱</span><b>Tiny Farm</b><small>Plant, water and harvest</small></button>
+      <button type="button" onclick="taFixPlay('treasure')"><span>🗺️</span><b>Treasure Hunt</b><small>Search for hidden treasure</small></button>
+      <button type="button" onclick="taFixPlay('archery')"><span>🏹</span><b>Target Range</b><small>Hit 5 moving targets</small></button>
+      <button type="button" onclick="taFixPlay('brain')"><span>🧠</span><b>Brain Challenge</b><small>Quick memory challenge</small></button>
+      <button type="button" onclick="taFixPlay('quest')"><span>📜</span><b>Quick Quest</b><small>Complete a daily task</small></button>
+    </div>
+
+    <div class="ta-progress">
+      <div><span>🎣 Fish</span><b id="taFishCount">0</b></div>
+      <div><span>🌾 Harvests</span><b id="taFarmCount">0</b></div>
+      <div><span>💎 Treasures</span><b id="taTreasureCount">0</b></div>
+      <div><span>🏆 Completed</span><b id="taDoneCount">0</b></div>
+    </div>
+
+    <div id="taFixResult" class="ta-fix-result">Choose an activity to start.</div>
+    <div class="ta-log-card">
+      <h3>📜 Activity Log</h3>
+      <div id="taFixLog">No activity yet.</div>
+    </div>
+    <div class="tw-fix-bottom"><button type="button" onclick="taFixBack()">← Back to Games</button></div>
+  </div>
+</section>
+
+<section id="brawlmastersPage" class="page">
+  <div class="bm-wrap">
+    <div class="th-wa-head">
+      <button type="button" class="th-wa-back" onclick="closeBrawlMasters()">← Games</button>
+      <div><b>🎯 Brawlmasters Shooting</b><small>Hold to charge • release to fire</small></div>
+      <span id="bmModeLabel">1V1</span>
+    </div>
+    <div class="bm-toolbar">
+      <button type="button" class="bm-mode active" onclick="bmSetMode('local')">👥 1v1 Local</button>
+      <button type="button" class="bm-mode" onclick="bmSetMode('ai')">🤖 1v1 vs AI</button>
+      <button type="button" onclick="bmReset()">🔄 New Round</button>
+    </div>
+    <div class="bm-hud">
+      <div class="bm-player-hud"><span>🔵 Player 1</span><div class="bm-hp"><i id="bmP1HpBar"></i></div><b id="bmP1Hp">100</b></div>
+      <div class="bm-score"><small>ROUND SCORE</small><b id="bmP1Score">0</b> : <b id="bmP2Score">0</b></div>
+      <div class="bm-player-hud right"><span id="bmP2Name">🔴 Player 2</span><div class="bm-hp"><i id="bmP2HpBar"></i></div><b id="bmP2Hp">100</b></div>
+    </div>
+    <div class="bm-stage"><canvas id="bmCanvas" width="1000" height="600"></canvas></div>
+    <div class="bm-status" id="bmStatus">Hold FIRE to charge your shot. Release to fire.</div>
+    <div class="bm-mobile-controls">
+      <div class="bm-control-card"><strong>🔵 P1</strong><div class="bm-joystick" id="bmJoy1"><span></span></div><button class="bm-charge" id="bmFire1">HOLD FIRE</button></div>
+      <div class="bm-power"><span>AIM / POWER</span><div class="bm-powerbar"><i id="bmPowerBar"></i></div><small>Hold longer = stronger shot</small></div>
+      <div class="bm-control-card"><strong>🔴 P2</strong><div class="bm-joystick" id="bmJoy2"><span></span></div><button class="bm-charge red" id="bmFire2">HOLD FIRE</button></div>
+    </div>
+    <p class="bm-help">Phone: drag the joystick to aim. Hold FIRE to charge like a volume slider, then release. Keyboard: P1 = WASD + F, P2 = Arrow Keys + Enter. In AI mode, P2 is controlled by AI.</p>
+  </div>
+</section>
+
+<section id="poolPage" class="page">
+  <div class="pool-wrap">
+    <div class="th-wa-head"><button class="th-wa-back" onclick="closePoolGame()">← Games</button><div><b>🎱 8 Ball Pool</b><small>Offline realistic-style pool</small></div><span id="poolTurn">PLAYER 1</span></div>
+    <div class="pool-hud"><div><b id="poolP1">Player 1</b><span id="poolP1Score">0 balls</span></div><div class="pool-turn-dot" id="poolTurnDot">●</div><div class="right"><b id="poolP2">Player 2</b><span id="poolP2Score">0 balls</span></div></div>
+    <div class="pool-table-wrap"><canvas id="poolCanvas" width="1100" height="620"></canvas></div>
+    <div class="pool-controls">
+      <div class="pool-aim-help"><b>Aim:</b> drag on the table. <b>Power:</b> hold the shot button, then release.</div>
+      <div class="pool-power"><span>POWER</span><div><i id="poolPowerBar"></i></div></div>
+      <button id="poolShoot" class="pool-shoot">🎱 HOLD & SHOOT</button>
+      <button onclick="poolReset()">↻ New Rack</button>
+    </div>
+    <div id="poolMessage" class="pool-message">Player 1: choose your aim.</div>
+    <p class="pool-help">The cue ball uses friction, cushion bounce, ball-to-ball collision and pocket detection. Drag to set the cue direction, hold the button to build power, and release.</p>
+  </div>
+</section>
+
+
+<section id="lucky9Page" class="page">
+  <div class="l9-wrap">
+    <div class="l9-head">
+      <button class="th-wa-back" onclick="closeLucky9()">← Games</button>
+      <div><b>🃏 Lucky 9</b><small>Offline • standard 52-card deck • virtual score only</small></div>
+      <span id="l9Round">ROUND 1</span>
+    </div>
+    <div class="l9-controls">
+      <label>Players <select id="l9PlayerCount" onchange="l9SetPlayerCount()"><option value="2">2 Players</option><option value="3">3 Players</option><option value="4">4 Players</option></select></label>
+      <button onclick="l9NewRound()">🔀 New Round</button>
+      <button onclick="l9NewGame()">♻️ Reset Game</button>
+    </div>
+    <div class="l9-table">
+      <div class="l9-dealer l9-seat">
+        <div class="l9-seat-title"><b>🏦 Banker / Dealer</b><span id="l9DealerValue">—</span></div>
+        <div id="l9DealerCards" class="l9-cards"></div>
+        <div id="l9DealerStatus" class="l9-status">Waiting for round…</div>
+      </div>
+      <div id="l9Players" class="l9-players"></div>
+    </div>
+    <div class="l9-actionbar">
+      <div><b id="l9Turn">Player 1</b><span id="l9Message">Start a round to deal two cards.</span></div>
+      <div class="l9-actions"><button id="l9Hit" onclick="l9Hit()">🃏 HIT</button><button id="l9Stand" onclick="l9Stand()">✋ STAND</button></div>
+    </div>
+    <div class="l9-rules">
+      <b>How it works</b>
+      <span>A=1 • 2–9 face value • 10/J/Q/K=0 • only the last digit counts.</span>
+      <span>Everyone starts with 2 cards. A two-card 9 is a Natural 9. Otherwise you may Hit once for a third card or Stand.</span>
+      <span>After all players act, the dealer reveals and hits on 0–5, stands on 6–9. Highest total wins; equal totals are ties.</span>
+    </div>
+    <div class="l9-scoreboard"><h3>🏆 Scoreboard</h3><div id="l9Scoreboard"></div></div>
+  </div>
+</section>
+
+<div id="offlineChess" class="offlineChessWrap hidden">
+    <div class="sectionHead"><h2>♟️ Chess</h2><button onclick="closeOfflineChess()">← Games</button></div>
+
+<div id="tinehub-chess" class="th-chess-app">
+  <div class="th-chess-top">
+    <div>
+      <div class="th-chess-kicker">OFFLINE GAME</div>
+      <h2>♟️ TineHub Chess</h2>
+      <p class="th-chess-status" id="thChessStatus">White to move</p>
+    </div>
+    <div class="th-chess-actions">
+      <button type="button" onclick="thChessUndo()">↶ Undo</button>
+      <button type="button" onclick="thChessNewGame()">＋ New Game</button>
+      <button type="button" onclick="thChessFlip()">⇅ Flip</button>
+      <button type="button" onclick="thChessSwapLooks()">🔄 Swap Looks</button>
+    </div>
+  </div>
+
+  <div class="th-chess-layout">
+    <aside class="th-chess-card th-side">
+      <div class="th-player-row"><span class="th-dot black"></span><strong>Black</strong><span id="thBlackClock">10:00</span></div>
+      <div class="th-captured-title">Captured</div>
+      <div id="thBlackCaptured" class="th-captured"></div>
+      <div class="th-game-info"><span>Moves</span><b id="thMoveCount">0</b></div>
+    </aside>
+
+    <div class="th-board-area">
+      <div id="thChessBoard" class="th-chess-board" aria-label="Chess board"></div>
+      <div class="th-board-help">Tap a piece, then tap a highlighted square. Legal moves only.</div>
+    </div>
+
+    <aside class="th-chess-card th-side">
+      <div class="th-player-row"><span class="th-dot white"></span><strong>White</strong><span id="thWhiteClock">10:00</span></div>
+      <div class="th-captured-title">Captured</div>
+      <div id="thWhiteCaptured" class="th-captured"></div>
+      <div class="th-game-info"><span>Turn</span><b id="thTurnLabel">White</b></div>
+    </aside>
+  </div>
+
+  <div class="th-chess-card th-moves-card">
+    <div class="th-moves-head"><strong>Move History</strong><button type="button" onclick="thChessClearHistory()">Clear</button></div>
+    <div id="thMoveHistory" class="th-move-history">No moves yet.</div>
+  </div>
+
+  <div id="thChessModal" class="th-chess-modal hidden">
+    <div class="th-modal-card">
+      <div id="thChessResult" class="th-result-icon">♔</div>
+      <h3 id="thChessResultTitle">Game Over</h3>
+      <p id="thChessResultText"></p>
+      <button type="button" onclick="thChessNewGame()">Play Again</button>
+    </div>
+  </div>
+</div>
+
+  </div>
+</section>
+
+<section id="offlineScatterPage" class="page">
+<div class="th-game-backbar">
+  <button type="button" class="th-back-btn" onclick="closeOfflineScatter()">← Back</button>
+  <button type="button" class="th-menu-btn" onclick="thToggleGameMenu(this)">☰ Games Menu</button>
+</div>
+<div class="th-game-menu" hidden>
+  <button type="button" onclick="showPage('games')">🎮 Offline Games</button>
+  <button type="button" onclick="showPage('home')">⌂ TineHub Home</button>
+</div>
+<div class="sectionHead"><h2>🎰 Lucky Scatter</h2><button type="button" onclick="closeOfflineScatter()">← Games</button></div>
+
+<div class="th-scatter-app th-mythic-scatter">
+  <div class="th-scatter-top th-chess-card">
+    <div><div class="th-chess-kicker">TINEHUB ORIGINAL • VIRTUAL COINS</div><h2>⚡ Mythic Scatter</h2><p>6×4 reels • cascading wins • multipliers • bonus meter</p></div>
+    <div class="th-balance">🪙 <b id="thScatterBalance">1000</b></div>
+  </div>
+
+  <div class="th-scatter-machine th-chess-card">
+    <div class="th-scatter-jackpot"><span>MYTHIC JACKPOT</span><b id="thScatterJackpot">5000×</b></div>
+    <div class="th-scatter-reels th-scatter-grid6" id="thScatterReels"></div>
+    <div class="th-scatter-winbar"><b id="thScatterResult">Choose your bet and spin.</b><span id="thScatterBonus">BONUS 0/4</span></div>
+    <div class="th-scatter-controls">
+      <label>Bet <input id="thScatterBet" type="number" min="1" max="100" value="10"></label>
+      <div class="th-random-luck"><span>🎲 Random Luck</span><b id="thScatterLuckDisplay">--%</b></div>
+      <button type="button" class="th-scatter-spin" onclick="thScatterSpin()">⚡ SPIN</button>
+    </div>
+    <div class="th-scatter-note">Virtual/offline only. No real-money deposits, wagering or cash-out.</div>
+  </div>
+
+  <div class="th-scatter-stats">
+    <div class="th-chess-card"><span>Spins</span><b id="thScatterSpins">0</b></div>
+    <div class="th-chess-card"><span>Wins</span><b id="thScatterWins">0</b></div>
+    <div class="th-chess-card"><span>Best Balance</span><b id="thScatterBest">1000</b></div>
+    <div class="th-chess-card"><span>Free Spins</span><b id="thScatterFree">0</b></div>
+  </div>
+  <button type="button" class="th-scatter-reset" onclick="thScatterReset()">Reset virtual coins</button>
+</div>
+</section>
+
+
+<section id="offlineDicePage" class="page"><div class="th-game-backbar">
+  <button class="th-back-btn" onclick="closeOfflineGame()">← Back</button>
+  <button class="th-menu-btn" onclick="thToggleGameMenu(this)">☰ Games Menu</button>
+</div>
+<div class="th-game-menu" hidden><button onclick="showPage('games')">🎮 Offline Games</button><button onclick="showPage('home')">⌂ TineHub Home</button></div>
+<div class="sectionHead"><h2>🎲 Dice Odd / Even</h2><button onclick="closeOfflineGame()">← Games</button></div>
+<div class="th-game-panel th-dice-panel">
+  <div class="th-chess-kicker">OFFLINE • VIRTUAL COINS</div>
+  <div class="th-dice-stage" id="diceStage">
+    <div class="th-die" id="die1">⚀</div><div class="th-die" id="die2">⚄</div><div class="th-die" id="die3">⚂</div>
+  </div>
+  <p id="diceResult">Choose Odd or Even, then roll 3 dice.</p>
+  <div class="th-game-controls"><button onclick="thDicePlay('odd')">🟣 ODD</button><button onclick="thDicePlay('even')">🔵 EVEN</button></div>
+  <div class="th-game-coins">🪙 Virtual coins: <b id="diceCoins">1000</b></div>
+  <div class="th-dice-history" id="diceHistory">Last roll: —</div>
+</div></section>
+
+<section id="offlineSnakePage" class="page"><div class="th-game-backbar">
+  <button class="th-back-btn" onclick="closeOfflineGame()">← Back</button>
+  <button class="th-menu-btn" onclick="thToggleGameMenu(this)">☰ Games Menu</button>
+</div>
+<div class="th-game-menu" hidden>
+  <button onclick="showPage('games')">🎮 Offline Games</button>
+  <button onclick="showPage('home')">⌂ TineHub Home</button>
+</div>
+<div class="sectionHead"><h2>🐍 Snake</h2><button onclick="closeOfflineGame()">← Games</button></div>
+<div class="th-game-panel th-chess-card"><canvas id="snakeCanvas" width="360" height="360" class="th-canvas"></canvas><p id="snakeScore">Score: 0</p><div class="th-dpad"><button onclick="snakeDir(0,-1)">↑</button><button onclick="snakeDir(-1,0)">←</button><button onclick="snakeDir(1,0)">→</button><button onclick="snakeDir(0,1)">↓</button></div><button onclick="startSnake()">Start / Restart</button></div></section>
+
+<section id="offlineTicPage" class="page"><div class="th-game-backbar">
+  <button class="th-back-btn" onclick="closeOfflineGame()">← Back</button>
+  <button class="th-menu-btn" onclick="thToggleGameMenu(this)">☰ Games Menu</button>
+</div>
+<div class="th-game-menu" hidden>
+  <button onclick="showPage('games')">🎮 Offline Games</button>
+  <button onclick="showPage('home')">⌂ TineHub Home</button>
+</div>
+<div class="sectionHead"><h2>❌⭕ Tic-Tac-Toe</h2><button onclick="closeOfflineGame()">← Games</button></div>
+<div class="th-game-panel th-chess-card"><div id="ticBoard" class="tic-board"></div><p id="ticStatus">X's turn</p><button onclick="startTic()">New Game</button></div></section>
+
+<section id="offline2048Page" class="page"><div class="th-game-backbar">
+  <button class="th-back-btn" onclick="closeOfflineGame()">← Back</button>
+  <button class="th-menu-btn" onclick="thToggleGameMenu(this)">☰ Games Menu</button>
+</div>
+<div class="th-game-menu" hidden>
+  <button onclick="showPage('games')">🎮 Offline Games</button>
+  <button onclick="showPage('home')">⌂ TineHub Home</button>
+</div>
+<div class="sectionHead"><h2>🔢 2048</h2><button onclick="closeOfflineGame()">← Games</button></div>
+<div class="th-game-panel th-chess-card"><b>Score: <span id="g2048Score">0</span></b><div id="g2048" class="g2048"></div><p>Use buttons, swipe, or keyboard.</p><div class="th-mobile-controls dpad2048"><button onclick="th2048Move('up')">▲</button><button onclick="th2048Move('left')">◀</button><button onclick="th2048Move('down')">▼</button><button onclick="th2048Move('right')">▶</button></div><button onclick="start2048()">New Game</button></div></section>
+
+<section id="offlineMinesPage" class="page"><div class="th-game-backbar">
+  <button class="th-back-btn" onclick="closeOfflineGame()">← Back</button>
+  <button class="th-menu-btn" onclick="thToggleGameMenu(this)">☰ Games Menu</button>
+</div>
+<div class="th-game-menu" hidden>
+  <button onclick="showPage('games')">🎮 Offline Games</button>
+  <button onclick="showPage('home')">⌂ TineHub Home</button>
+</div>
+<div class="sectionHead"><h2>💣 Minesweeper</h2><button onclick="closeOfflineGame()">← Games</button></div>
+<div class="th-game-panel th-chess-card"><div id="mines" class="mines"></div><p id="mineStatus">Find all safe cells.</p><button onclick="startMines()">New Game</button></div></section>
+
+<section id="offlineTetrisPage" class="page"><div class="th-game-backbar">
+  <button class="th-back-btn" onclick="closeOfflineGame()">← Back</button>
+  <button class="th-menu-btn" onclick="thToggleGameMenu(this)">☰ Games Menu</button>
+</div>
+<div class="th-game-menu" hidden>
+  <button onclick="showPage('games')">🎮 Offline Games</button>
+  <button onclick="showPage('home')">⌂ TineHub Home</button>
+</div>
+<div class="sectionHead"><h2>🧱 Tetris</h2><button onclick="closeOfflineGame()">← Games</button></div>
+<div class="th-game-panel th-chess-card"><canvas id="tetrisCanvas" width="240" height="480" class="th-canvas"></canvas><p id="tetrisScore">Score: 0</p><div class="th-mobile-controls tetris-controls"><button onclick="thTetMove(-1)">◀</button><button onclick="thTetRotate()">⟳</button><button onclick="thTetMove(1)">▶</button><button onclick="thTetDrop()">▼</button></div><button onclick="startTetris()">Start / Restart</button></div></section>
+
+<section id="offlineSudokuPage" class="page"><div class="th-game-backbar">
+  <button class="th-back-btn" onclick="closeOfflineGame()">← Back</button>
+  <button class="th-menu-btn" onclick="thToggleGameMenu(this)">☰ Games Menu</button>
+</div>
+<div class="th-game-menu" hidden>
+  <button onclick="showPage('games')">🎮 Offline Games</button>
+  <button onclick="showPage('home')">⌂ TineHub Home</button>
+</div>
+<div class="sectionHead"><h2>🧩 Sudoku</h2><button onclick="closeOfflineGame()">← Games</button></div>
+<div class="th-game-panel th-chess-card"><div id="sudoku" class="sudoku"></div><button onclick="startSudoku()">New Puzzle</button></div></section>
+
+<section id="offlineMemoryPage" class="page"><div class="th-game-backbar">
+  <button class="th-back-btn" onclick="closeOfflineGame()">← Back</button>
+  <button class="th-menu-btn" onclick="thToggleGameMenu(this)">☰ Games Menu</button>
+</div>
+<div class="th-game-menu" hidden>
+  <button onclick="showPage('games')">🎮 Offline Games</button>
+  <button onclick="showPage('home')">⌂ TineHub Home</button>
+</div>
+<div class="sectionHead"><h2>🃏 Memory Cards</h2><button onclick="closeOfflineGame()">← Games</button></div>
+<div class="th-game-panel th-chess-card"><div id="memory" class="memory"></div><p id="memoryStatus">Find the pairs.</p><button onclick="startMemory()">New Game</button></div></section>
+
+<section id="offlinePongPage" class="page"><div class="th-game-backbar">
+  <button class="th-back-btn" onclick="closeOfflineGame()">← Back</button>
+  <button class="th-menu-btn" onclick="thToggleGameMenu(this)">☰ Games Menu</button>
+</div>
+<div class="th-game-menu" hidden>
+  <button onclick="showPage('games')">🎮 Offline Games</button>
+  <button onclick="showPage('home')">⌂ TineHub Home</button>
+</div>
+<div class="sectionHead"><h2>🏓 Pong</h2><button onclick="closeOfflineGame()">← Games</button></div>
+<div class="th-game-panel th-chess-card"><canvas id="pongCanvas" width="520" height="300" class="th-canvas"></canvas><p id="pongScore">0 : 0</p><div class="th-mobile-controls pong-controls"><button onclick="thPongMove(-1)">▲ UP</button><button onclick="thPongMove(1)">▼ DOWN</button></div><button onclick="startPong()">Start / Restart</button></div></section>
+
+<section id="offlineRacerPage" class="page"><div class="th-game-backbar"><button class="th-back-btn" onclick="closeOfflineGame()">← Back</button><button class="th-menu-btn" onclick="thToggleGameMenu(this)">☰ Games Menu</button></div><div class="th-game-menu" hidden><button onclick="showPage('games')">🎮 Offline Games</button><button onclick="showPage('home')">⌂ TineHub Home</button></div><div class="sectionHead"><h2>🏎️ Endless Racer</h2><button onclick="closeOfflineGame()">← Games</button></div>
+<div class="th-game-panel th-chess-card"><canvas id="racerCanvas" width="360" height="520" class="th-canvas"></canvas><p id="racerScore">Distance: 0</p><div class="th-mobile-controls racer-controls"><button onclick="thRacerMove(-1)">◀</button><button onclick="thRacerBrake()">●</button><button onclick="thRacerMove(1)">▶</button></div><button onclick="startRacer()">Start / Restart</button></div></section>
+
+
+<section id="offlineColorPage" class="page"><div class="th-game-backbar">
+  <button class="th-back-btn" onclick="closeOfflineGame()">← Back</button>
+  <button class="th-menu-btn" onclick="thToggleGameMenu(this)">☰ Games Menu</button>
+</div>
+<div class="th-game-menu" hidden>
+  <button onclick="showPage('games')">🎮 Offline Games</button>
+  <button onclick="showPage('home')">⌂ TineHub Home</button>
+</div>
+
+  <div class="sectionHead"><h2>🎨 Color Rush</h2><button onclick="closeOfflineGame()">← Games</button></div>
+  <div class="th-color-app">
+    <div class="th-color-head th-chess-card">
+      <div><div class="th-chess-kicker">OFFLINE • VIRTUAL COINS</div><h2>Color Rush</h2><p>Choose a color and watch the box roll to its result.</p></div>
+      <div class="th-color-balance">🪙 <b id="colorCoins">1000</b></div>
+    </div>
+    <div class="th-color-machine th-chess-card">
+      <div class="th-color-stage">
+        <div id="colorBox" class="th-color-box red"><span id="colorBoxIcon">?</span></div>
+        <div id="colorGlow" class="th-color-glow"></div>
+      </div>
+      <div class="th-color-result" id="colorResult">Pick a color to start.</div>
+      <div class="th-color-options">
+        <button class="color-choice red" onclick="thColorPick('red')"><i></i>RED</button>
+        <button class="color-choice green" onclick="thColorPick('green')"><i></i>GREEN</button>
+        <button class="color-choice blue" onclick="thColorPick('blue')"><i></i>BLUE</button>
+      </div>
+      <div class="th-color-controls">
+        <label>Bet <input id="colorBet" type="number" min="1" max="100" value="10"></label>
+        <label>Luck <select id="colorLuck"><option value="35">Low</option><option value="50" selected>Normal</option><option value="65">Lucky</option><option value="80">Very Lucky</option></select></label>
+      </div>
+      <div class="th-color-stats">
+        <div><span>Rounds</span><b id="colorRounds">0</b></div>
+        <div><span>Wins</span><b id="colorWins">0</b></div>
+        <div><span>Best</span><b id="colorBest">1000</b></div>
+      </div>
+      <div class="th-color-note">Virtual coins only. No real-money betting or cash-out.</div>
+      <button class="th-scatter-reset" onclick="thColorReset()">Reset virtual coins</button>
+    </div>
+  </div>
+</section>
+
+
+<div id="thHubModal" class="th-hub-modal" hidden>
+  <div class="th-hub-modal-card">
+    <div class="th-hub-modal-head"><h2 id="thHubModalTitle">TineHub</h2><button onclick="thCloseHubModal()">✕</button></div>
+    <div id="thHubModalBody"></div>
+  </div>
+</div>
+<section id="settings" class="page">
+  <h2>⚙️ Settings</h2>
+  <div class="card glass"><h3>🎨 Background</h3><div class="choices">
+    <button onclick="setBg('default')">Default</button><button onclick="setBg('purple')">Purple</button><button onclick="setBg('blue')">Blue</button><button onclick="setBg('sunset')">Sunset</button><button onclick="setBg('forest')">Forest</button><label class="primaryBtn">🖼 Custom<input type="file" id="bgInput" accept="image/*" hidden></label>
+  </div></div>
+  <div class="card glass"><h3>🎧 Chill background music</h3><div class="row"><button onclick="toggleBackgroundMusic()" id="bgMusicBtn">▶ Start chill music</button><button onclick="openSocial('youtube')">▶ YouTube</button><button onclick="openSocial('facebook')">📘 Facebook</button></div><label>Background volume <input id="bgVolume" type="range" min="0" max="100" value="85"></label><p class="hint">High-volume chill background music. YouTube/Facebook open in their app or browser when available.</p></div>
+  <div class="card glass"><h3>🔊 Click sound</h3><label class="switch"><input id="soundToggle" type="checkbox"><span>Play UI sounds</span></label></div>
+  <div class="card glass"><h3>🔐 Security</h3><button onclick="changePassword()">Change password</button><button onclick="lockHub()">Lock now</button></div>
+  <div class="card glass"><h3>📲 App download</h3><input id="appDownloadUrl" class="textInput" value="./JustineHub.apk" placeholder="APK download URL (https://...) or ./JustineHub.apk"><div class="row"><button onclick="saveAppDownloadUrl()">💾 Save link</button><button onclick="downloadApp()">⬇️ Download app</button></div><p class="hint">Set the APK link once. The Download App buttons will use it.</p></div>
+  <div class="card glass"><h3>💾 Backup</h3><button onclick="exportBackup()">Export data</button><label class="primaryBtn">Import data<input type="file" id="backupInput" accept=".json,application/json" hidden></label></div>
+  <div class="card glass"><h3>🎨 Theme</h3><button onclick="toggleTheme()">Toggle light/dark</button></div>
+</section>
+</main>
+
+<nav class="bottomNav">
+<button onclick="showPage('home')">⌂<span>Home</span></button><button onclick="showPage('calendar')">📅<span>Calendar</span></button><button onclick="showPage('music')">🎵<span>Music</span></button><button onclick="showPage('gallery')">🖼️<span>Gallery</span></button><button onclick="showPage('games')">🎮<span>Games</span></button><button onclick="showPage('settings')">⚙️<span>Settings</span></button>
+</nav>
+</div>
+
+
+
+<script>
+(function(){
+"use strict";
+const W='♙♘♗♖♕♔', B='♟♞♝♜♛♚';
+const START=[
+ ['r','n','b','q','k','b','n','r'],['p','p','p','p','p','p','p','p'],
+ ['','','','','','','',''],['','','','','','','',''],
+ ['','','','','','','',''],['','','','','','','',''],
+ ['P','P','P','P','P','P','P','P'],['R','N','B','Q','K','B','N','R']
+];
+let board, turn, selected, legal, history, captured, flipped=false, undoStack=[], gameOver=false;
+let clocks={w:600,b:600}, timer=null;
+
+function isWhite(p){return p && p===p.toUpperCase()}
+function color(p){return isWhite(p)?'w':'b'}
+function inside(r,c){return r>=0&&r<8&&c>=0&&c<8}
+function clone(b){return b.map(r=>r.slice())}
+function sq(r,c){return String.fromCharCode(97+c)+(8-r)}
+let swappedLooks=true;
+function pieceChar(p){
+  if(!p)return '';
+  const white=isWhite(p), pc=p.toLowerCase();
+  // Visual skin is intentionally independent from chess movement rules.
+  // Knight still moves like a knight even when it is drawn as a rook, etc.
+  const skin=swappedLooks?{p:'p',n:'r',b:'b',r:'n',q:'b',k:'k'}:{p:'p',n:'n',b:'b',r:'r',q:'q',k:'k'};
+  const shown=skin[pc]||pc;
+  const set=white?{'p':'♙','n':'♘','b':'♗','r':'♖','q':'♕','k':'♔'}:{'p':'♟','n':'♞','b':'♝','r':'♜','q':'♛','k':'♚'};
+  return set[shown];
+}
+
+function attacks(b,r,c,tr,tc){
+ const p=b[r][c], pc=p.toLowerCase(), dr=tr-r, dc=tc-c;
+ if(!p) return false;
+ if(pc==='p') return color(p)==='w' ? dr===-1&&Math.abs(dc)===1 : dr===1&&Math.abs(dc)===1;
+ if(pc==='n') return (Math.abs(dr)===2&&Math.abs(dc)===1)||(Math.abs(dr)===1&&Math.abs(dc)===2);
+ if(pc==='k') return Math.max(Math.abs(dr),Math.abs(dc))===1;
+ const diag=Math.abs(dr)===Math.abs(dc), straight=dr===0||dc===0;
+ if((pc==='b'&&!diag)||(pc==='r'&&!straight)||(pc==='q'&&!diag&&!straight)) return false;
+ const sr=Math.sign(dr),sc=Math.sign(dc); let rr=r+sr,cc=c+sc;
+ while(rr!==tr||cc!==tc){if(b[rr][cc]) return false;rr+=sr;cc+=sc}
+ return true;
+}
+function kingPos(b,co){for(let r=0;r<8;r++)for(let c=0;c<8;c++)if(b[r][c]===(co==='w'?'K':'k'))return [r,c];return null}
+function inCheck(b,co){
+ const k=kingPos(b,co); if(!k)return true;
+ const enemy=co==='w'?'b':'w';
+ for(let r=0;r<8;r++)for(let c=0;c<8;c++)if(color(b[r][c])===enemy&&attacks(b,r,c,k[0],k[1]))return true;
+ return false;
+}
+function pseudoMoves(b,r,c){
+ const p=b[r][c], pc=p.toLowerCase(), co=color(p), out=[];
+ if(pc==='p'){
+   const d=co==='w'?-1:1, start=co==='w'?6:1;
+   if(inside(r+d,c)&&!b[r+d][c]){out.push([r+d,c]);if(r===start&&!b[r+2*d][c])out.push([r+2*d,c])}
+   for(const dc of [-1,1]){let rr=r+d,cc=c+dc;if(inside(rr,cc)&&b[rr][cc]&&color(b[rr][cc])!==co)out.push([rr,cc])}
+ } else if(pc==='n'){
+   for(const [dr,dc] of [[2,1],[2,-1],[-2,1],[-2,-1],[1,2],[1,-2],[-1,2],[-1,-2]]){let rr=r+dr,cc=c+dc;if(inside(rr,cc)&&(!b[rr][cc]||color(b[rr][cc])!==co))out.push([rr,cc])}
+ } else if(pc==='k'){
+   for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){if(!dr&&!dc)continue;let rr=r+dr,cc=c+dc;if(inside(rr,cc)&&(!b[rr][cc]||color(b[rr][cc])!==co))out.push([rr,cc])}
+ } else {
+   const dirs=pc==='b'?[[1,1],[1,-1],[-1,1],[-1,-1]]:pc==='r'?[[1,0],[-1,0],[0,1],[0,-1]]:[[1,1],[1,-1],[-1,1],[-1,-1],[1,0],[-1,0],[0,1],[0,-1]];
+   for(const [dr,dc] of dirs){let rr=r+dr,cc=c+dc;while(inside(rr,cc)){if(!b[rr][cc])out.push([rr,cc]);else{if(color(b[rr][cc])!==co)out.push([rr,cc]);break}rr+=dr;cc+=dc}}
+ }
+ return out;
+}
+function movesFor(b,r,c){
+ const p=b[r][c]; if(!p)return [];
+ const co=color(p), out=[];
+ for(const m of pseudoMoves(b,r,c)){
+   const nb=clone(b); nb[m[0]][m[1]]=p;nb[r][c]='';
+   if(!inCheck(nb,co))out.push(m);
+ }
+ return out;
+}
+function allMoves(b,co){
+ const out=[];for(let r=0;r<8;r++)for(let c=0;c<8;c++)if(color(b[r][c])===co)for(const m of movesFor(b,r,c))out.push([r,c,m[0],m[1]]);
+ return out;
+}
+function render(){
+ const el=document.getElementById('thChessBoard'); if(!el)return;
+ el.innerHTML='';
+ for(let vr=0;vr<8;vr++)for(let vc=0;vc<8;vc++){
+   const r=flipped?7-vr:vr,c=flipped?7-vc:vc;
+   const d=document.createElement('button'); d.type='button';d.className='th-square '+((r+c)%2?'dark':'light');
+   if(selected&&selected[0]===r&&selected[1]===c)d.classList.add('selected');
+   if(legal.some(m=>m[0]===r&&m[1]===c))d.classList.add(board[r][c]?'capture':'move');
+   if(r===0)d.dataset.file=String.fromCharCode(97+c);
+   if(c===0)d.dataset.rank=8-r;
+   const p=board[r][c]; if(p){const s=document.createElement('span');s.className='th-piece '+(isWhite(p)?'white-piece':'black-piece');s.textContent=pieceChar(p);d.appendChild(s)}
+   d.onclick=()=>clickSquare(r,c);el.appendChild(d);
+ }
+ document.getElementById('thChessStatus').textContent=gameOver?'Game over':(turn==='w'?'White to move':'Black to move');
+ document.getElementById('thTurnLabel').textContent=turn==='w'?'White':'Black';
+ document.getElementById('thMoveCount').textContent=history.length;
+ document.getElementById('thWhiteClock').textContent=fmt(clocks.w);
+ document.getElementById('thBlackClock').textContent=fmt(clocks.b);
+ document.getElementById('thWhiteCaptured').innerHTML=captured.w.map(p=>'<span class="th-cap-piece white-piece">'+pieceChar(p)+'</span>').join('');
+ document.getElementById('thBlackCaptured').innerHTML=captured.b.map(p=>'<span class="th-cap-piece black-piece">'+pieceChar(p)+'</span>').join('');
+ document.getElementById('thMoveHistory').innerHTML=history.length?history.map((m,i)=>'<span><b>'+((i>>1)+1)+'.</b> '+(i%2?'… ':'')+m+'</span>').join(''):'No moves yet.';
+}
+function clickSquare(r,c){
+ if(gameOver)return;
+ if(selected){
+   const m=legal.find(x=>x[0]===r&&x[1]===c);
+   if(m){move(selected[0],selected[1],r,c);return}
+ }
+ if(board[r][c]&&color(board[r][c])===turn){selected=[r,c];legal=movesFor(board,r,c)}else{selected=null;legal=[]}
+ render();
+}
+function move(r,c,tr,tc){
+ undoStack.push({board:clone(board),turn,history:history.slice(),captured:{w:captured.w.slice(),b:captured.b.slice()},clocks:{...clocks}});
+ const p=board[r][c], target=board[tr][tc];
+ board[tr][tc]=p;board[r][c]='';
+ if(target)captured[turn].push(target);
+ if(p.toLowerCase()==='p'&&(tr===0||tr===7)){board[tr][tc]=turn==='w'?'Q':'q'}
+ const notation=(target?'x':'')+sq(tr,tc)+(p.toLowerCase()==='p'?'':p.toUpperCase());
+ history.push((p.toLowerCase()==='p'?sq(r,c).replace(/[0-9]/,''):p.toUpperCase())+(target?'x':'-')+sq(tr,tc)+(p.toLowerCase()==='p'&&(tr===0||tr===7)?'=Q':''));
+ turn=turn==='w'?'b':'w';selected=null;legal=[];
+ if(!allMoves(board,turn).length){gameOver=true;stopTimer();showResult(inCheck(board,turn)?(turn==='w'?'Black wins by checkmate':'White wins by checkmate'):'Draw by stalemate')}
+ render();
+}
+function showResult(t){document.getElementById('thChessResultTitle').textContent=t;document.getElementById('thChessResultText').textContent='Start a new offline game whenever you are ready.';document.getElementById('thChessModal').classList.remove('hidden')}
+function closeResult(){document.getElementById('thChessModal').classList.add('hidden')}
+function thChessNewGame(){closeResult();board=clone(START);turn='w';selected=null;legal=[];history=[];captured={w:[],b:[]};undoStack=[];clocks={w:600,b:600};gameOver=false;startTimer();render()}
+function thChessUndo(){const s=undoStack.pop();if(!s)return;board=s.board;turn=s.turn;history=s.history;captured=s.captured;clocks=s.clocks;gameOver=false;closeResult();render()}
+function thChessFlip(){flipped=!flipped;render()}
+function thChessSwapLooks(){swappedLooks=!swappedLooks;render();const b=document.querySelector('[onclick="thChessSwapLooks()"]');if(b)b.textContent=swappedLooks?'🔄 Normal Looks':'🔄 Swap Looks'}
+function thChessClearHistory(){history=[];render()}
+function fmt(n){return Math.floor(n/60)+':'+String(n%60).padStart(2,'0')}
+function startTimer(){stopTimer();timer=setInterval(()=>{if(gameOver)return;clocks[turn]--;if(clocks[turn]<=0){clocks[turn]=0;gameOver=true;stopTimer();showResult((turn==='w'?'Black':'White')+' wins on time')}render()},1000)}
+function stopTimer(){if(timer){clearInterval(timer);timer=null}}
+window.thChessNewGame=thChessNewGame;window.thChessUndo=thChessUndo;window.thChessFlip=thChessFlip;window.thChessSwapLooks=thChessSwapLooks;window.thChessClearHistory=thChessClearHistory;
+window.openOfflineChess=function(){document.getElementById('offlineGameSelection').classList.add('hidden');document.getElementById('offlineChess').classList.remove('hidden');thChessNewGame();window.scrollTo(0,0)}
+window.closeOfflineChess=function(){document.getElementById('offlineChess').classList.add('hidden');document.getElementById('offlineGameSelection').classList.remove('hidden');stopTimer();window.scrollTo(0,0)}
+document.addEventListener('DOMContentLoaded',()=>{board=clone(START);turn='w';selected=null;legal=[];history=[];captured={w:[],b:[]};undoStack=[];render();});
+})();
+</script>
+
+<script>
+(function(){
+let scatterBalance=1000,scatterSpins=0,scatterWins=0,scatterBest=1000,scatterFree=0,scatterBonus=0,scatterBusy=false;
+const mythicSymbols=['💎','🔱','👑','🔥','🌙','⚡','🟣','🟢','⭐','💠','🏛️','7️⃣'];
+const mythicPay={ '💎':3,'🔱':4,'👑':5,'🔥':6,'🌙':7,'⚡':8,'🟣':9,'🟢':10,'⭐':12,'💠':15,'🏛️':20,'7️⃣':30 };
+function scatterEl(id){return document.getElementById(id)}
+window.openOfflineScatter=function(){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));const p=scatterEl('offlineScatterPage');if(p)p.classList.add('active');window.scrollTo(0,0);scatterRender()};
+window.closeOfflineScatter=function(){showPage('games')};
+function pickSym(){return mythicSymbols[Math.floor(Math.random()*mythicSymbols.length)]}
+function scatterBuildGrid(luck){
+  const a=Array.from({length:24},pickSym);
+  const chance=Math.random()*100;
+  if(chance<luck){
+    const s=pickSym(), count=3+Math.floor(Math.random()*4);
+    let cells=[...Array(24).keys()].sort(()=>Math.random()-.5).slice(0,count);
+    cells.forEach(i=>a[i]=s);
+  }
+  // Bonus scatter symbols
+  if(Math.random()<luck/100*.55){
+    let cells=[...Array(24).keys()].sort(()=>Math.random()-.5).slice(4);
+    cells.forEach(i=>a[i]='⭐');
+  }
+  return a;
+}
+function scatterCalc(grid,bet){
+  const counts={};grid.forEach(x=>counts[x]=(counts[x]||0)+1);
+  let best=0,bestSym='',matchCount=0;
+  Object.keys(counts).forEach(sym=>{
+    if(counts[sym]>=3 && counts[sym]>matchCount){matchCount=counts[sym];bestSym=sym;best=mythicPay[sym]||2}
+  });
+  let mult=0;
+  if(matchCount>=3)mult=best;
+  if(matchCount>=5)mult*=2;
+  if(matchCount>=7)mult*=3;
+  return {win:bet*mult,mult,sym:bestSym,count:matchCount,bonus:(counts['⭐']||0)};
+}
+function scatterPaint(grid,winning=[]){
+  const e=scatterEl('thScatterReels');if(!e)return;
+  e.innerHTML=grid.map((sym,i)=>'<div class="th-scatter-reel '+(winning.includes(i)?'th-reel-win':'')+'">'+sym+'</div>').join('');
+}
+window.thScatterSpin=function(){
+  if(scatterBusy)return;
+  let bet=Math.max(1,Math.min(100,Number(scatterEl('thScatterBet')?.value)||10));
+  if(scatterFree>0){scatterFree--;bet=0}else if(bet>scatterBalance){scatterEl('thScatterResult').textContent='Not enough virtual coins.';return}
+  const luck=10+Math.floor(Math.random()*86); scatterEl('thScatterLuckDisplay').textContent=luck+'%';
+  scatterBusy=true;if(bet)scatterBalance-=bet;scatterSpins++;
+  const reels=scatterBuildGrid(luck),machine=scatterEl('thScatterReels');
+  if(machine){machine.classList.remove('th-spinning');void machine.offsetWidth;machine.classList.add('th-spinning')}
+  let ticks=0;
+  const preview=setInterval(()=>{
+    const temp=Array.from({length:24},pickSym);scatterPaint(temp);ticks++;
+    if(ticks>=9){clearInterval(preview);
+      const result=scatterCalc(reels,Math.max(1,bet));
+      const stars=result.bonus;
+      if(stars>=4){scatterFree+=5;scatterBonus=0}else scatterBonus=Math.min(4,scatterBonus+Math.min(stars,2));
+      const winning=[];if(result.count>=3)reels.forEach((x,i)=>{if(x===result.sym)winning.push(i)});
+      scatterPaint(reels,winning);
+      scatterBalance+=result.win; if(result.win>0)scatterWins++;
+      scatterBest=Math.max(scatterBest,scatterBalance);
+      const freeText=result.win?('🎉 WIN +'+result.win+' coins • '+result.count+'× '+result.sym):'No match — spin again.';
+      scatterEl('thScatterResult').textContent=freeText;
+      if(stars>=4)scatterEl('thScatterBonus').textContent='BONUS! +5 FREE SPINS';
+      else scatterEl('thScatterBonus').textContent='BONUS '+scatterBonus+'/4';
+      scatterRender();scatterBusy=false;
+      if(result.win){thWinPopup('MYTHIC WIN!','🎉 +'+result.win+' virtual coins ×'+result.mult,'⚡')}else thGameSound('lose');
+    }
+  },85);
+};
+window.thScatterReset=function(){scatterBalance=1000;scatterSpins=0;scatterWins=0;scatterBest=1000;scatterFree=0;scatterBonus=0;scatterBusy=false;scatterPaint(Array.from({length:24},pickSym));scatterRender();scatterEl('thScatterResult').textContent='Virtual coins reset.'};
+function scatterRender(){
+  if(scatterEl('thScatterBalance'))scatterEl('thScatterBalance').textContent=scatterBalance;
+  if(scatterEl('thScatterSpins'))scatterEl('thScatterSpins').textContent=scatterSpins;
+  if(scatterEl('thScatterWins'))scatterEl('thScatterWins').textContent=scatterWins;
+  if(scatterEl('thScatterBest'))scatterEl('thScatterBest').textContent=scatterBest;
+  if(scatterEl('thScatterFree'))scatterEl('thScatterFree').textContent=scatterFree;
+  if(scatterEl('thScatterJackpot'))scatterEl('thScatterJackpot').textContent=(5000+scatterSpins*25)+'×';
+}
+document.addEventListener('DOMContentLoaded',()=>{scatterPaint(Array.from({length:24},pickSym));scatterRender()});
+
+})();
+</script>
+
+<script>
+(function(){
+function openGame(id){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo(0,0)}
+window.closeOfflineGame=()=>showPage('games');
+window.openOfflineDice=()=>{openGame('offlineDicePage');diceRender()}
+window.openOfflineSnake=()=>{openGame('offlineSnakePage');startSnake()}
+window.openOfflineTicTacToe=()=>{openGame('offlineTicPage');startTic()}
+window.openOffline2048=()=>{openGame('offline2048Page');start2048()}
+window.openOfflineMines=()=>{openGame('offlineMinesPage');startMines()}
+window.openOfflineTetris=()=>{openGame('offlineTetrisPage');startTetris()}
+window.openOfflineSudoku=()=>{openGame('offlineSudokuPage');startSudoku()}
+window.openOfflineMemory=()=>{openGame('offlineMemoryPage');startMemory()}
+window.openOfflinePong=()=>{openGame('offlinePongPage');startPong()}
+window.openOfflineRacer=()=>{openGame('offlineRacerPage');startRacer()}
+
+/* Virtual coin dice — 3 animated dice */
+let diceCoins=1000,diceBusy=false,diceHist=[];
+const diceFaces=['','⚀','⚁','⚂','⚃','⚄','⚅'];
+function diceRender(){let e=document.getElementById('diceCoins');if(e)e.textContent=diceCoins}
+function thGameSound(kind='win'){
+ try{
+   const A=window.AudioContext||window.webkitAudioContext;if(!A)return;
+   const a=new A();
+   const seq=kind==='win'?[660,880,1047,1320]:kind==='lose'?[220,180]:[420,520,620];
+   let i=0;
+   const play=()=>{
+     if(i>=seq.length){setTimeout(()=>{try{a.close()}catch(e){}},80);return}
+     const o=a.createOscillator(),g=a.createGain();
+     o.type='sine';o.frequency.value=seq[i++];
+     g.gain.setValueAtTime(.001,a.currentTime);
+     g.gain.exponentialRampToValueAtTime(.06,a.currentTime+.015);
+     g.gain.exponentialRampToValueAtTime(.001,a.currentTime+.12);
+     o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+.13);
+     o.onended=()=>setTimeout(play,35);
+   };
+   play();
+ }catch(e){}
+}
+function thWinPopup(title,msg,emoji='🏆'){
+ let old=document.getElementById('thWinPopup');if(old)old.remove();
+ let p=document.createElement('div');p.id='thWinPopup';p.className='th-win-overlay';p.innerHTML='<div class="th-win-card"><div class="th-win-burst">'+emoji+'</div><h2>'+title+'</h2><p>'+msg+'</p><button onclick="this.closest(\'.th-win-overlay\').remove()">CONTINUE</button></div>';document.body.appendChild(p);
+ try{if(navigator.vibrate)navigator.vibrate([30,50,50])}catch(e){} thGameSound('win');
+}
+window.thWinPopup=thWinPopup;
+function diceRenderHistory(d){let e=document.getElementById('diceHistory');if(e)e.textContent='Last roll: '+d.join(' + ')+' = '+d.reduce((a,b)=>a+b,0)}
+window.thDicePlay=function(choice){
+ if(diceBusy)return; diceBusy=true;
+ const stage=document.getElementById('diceStage');stage.classList.remove('th-dice-rolling');void stage.offsetWidth;stage.classList.add('th-dice-rolling');
+ const vals=[1,1,1].map(()=>1+Math.floor(Math.random()*6));
+ let ticks=0;const ids=['die1','die2','die3'];
+ const anim=setInterval(()=>{ids.forEach(id=>document.getElementById(id).textContent=diceFaces[1+Math.floor(Math.random()*6)]);ticks++;if(ticks>=12){clearInterval(anim);ids.forEach((id,i)=>document.getElementById(id).textContent=diceFaces[vals[i]]);const total=vals.reduce((a,b)=>a+b,0),even=total%2===0,win=(choice==='even')===even;let amount=30;if(win)diceCoins+=amount;else diceCoins=Math.max(0,diceCoins-10);diceRender();diceRenderHistory(vals);document.getElementById('diceResult').textContent='Total '+total+' — '+(even?'Even':'Odd')+(win?' • You win '+amount+' virtual coins!':' • You lose 10 virtual coins.');diceBusy=false;if(win)thWinPopup('YOU WIN!','🎲 Total '+total+' is '+(even?'EVEN':'ODD')+' • +'+amount+' coins!','🎲');else thGameSound('lose')}},85);
+}
+/* Snake */
+let sn={s:[],f:{x:5,y:5},dx:1,dy:0,score:0,t:null};
+function startSnake(){clearInterval(sn.t);sn={s:[{x:8,y:8},{x:7,y:8},{x:6,y:8}],f:{x:14,y:14},dx:1,dy:0,score:0,t:null};sn.t=setInterval(stepSnake,115);drawSnake()}
+function snakeDir(dx,dy){if(sn.dx===-dx&&sn.dy===-dy)return;sn.dx=dx;sn.dy=dy}
+window.startSnake=startSnake;window.snakeDir=snakeDir;
+function stepSnake(){let h={x:sn.s[0].x+sn.dx,y:sn.s[0].y+sn.dy};if(h.x<0||h.x>=18||h.y<0||h.y>=18||sn.s.some(p=>p.x===h.x&&p.y===h.y)){clearInterval(sn.t);return}sn.s.unshift(h);if(h.x===sn.f.x&&h.y===sn.f.y){sn.score++;sn.f={x:Math.floor(Math.random()*18),y:Math.floor(Math.random()*18)}}else sn.s.pop();drawSnake()}
+function drawSnake(){let c=document.getElementById('snakeCanvas'),x=c.getContext('2d'),z=20;x.clearRect(0,0,c.width,c.height);x.fillStyle='#10231a';x.fillRect(0,0,c.width,c.height);x.fillStyle='#5ee27b';sn.s.forEach(p=>x.fillRect(p.x*z,p.y*z,z-2,z-2));x.fillStyle='#ff6b6b';x.fillRect(sn.f.x*z,sn.f.y*z,z-2,z-2);document.getElementById('snakeScore').textContent='Score: '+sn.score}
+
+/* Tic Tac Toe */
+let tic, ticTurn;
+function startTic(){tic=Array(9).fill('');ticTurn='X';drawTic()}
+function drawTic(){let e=document.getElementById('ticBoard');e.innerHTML='';tic.forEach((v,i)=>{let b=document.createElement('button');b.textContent=v;b.onclick=()=>{if(v||ticWinner())return;tic[i]=ticTurn;ticTurn=ticTurn==='X'?'O':'X';drawTic();let w=ticWinner();if(w)document.getElementById('ticStatus').textContent=w+' wins!';else if(tic.every(Boolean))document.getElementById('ticStatus').textContent='Draw!';else document.getElementById('ticStatus').textContent=ticTurn+"'s turn"};e.appendChild(b)})}
+function ticWinner(){for(let a of [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]])if(tic[a[0]]&&tic[a[0]]===tic[a[1]]&&tic[a[1]]===tic[a[2]])return tic[a[0]];return null}
+window.startTic=startTic;
+
+/* 2048 */
+let g2048,score2048;
+function start2048(){g2048=Array.from({length:4},()=>Array(4).fill(0));score2048=0;add2048();add2048();draw2048()}
+function add2048(){let e=[];for(let r=0;r<4;r++)for(let c=0;c<4;c++)if(!g2048[r][c])e.push([r,c]);if(e.length){let [r,c]=e[Math.floor(Math.random()*e.length)];g2048[r][c]=Math.random()<.9?2:4}}
+function move2048(dir){let changed=false;function line(a){a=a.filter(Boolean);for(let i=0;i<a.length-1;i++)if(a[i]===a[i+1]){a[i]*=2;score2048+=a[i];a[i+1]=0}a=a.filter(Boolean);while(a.length<4)a.push(0);return a}for(let i=0;i<4;i++){let a=[];for(let j=0;j<4;j++)a.push(dir==='left'?g2048[i][j]:dir==='right'?g2048[i][3-j]:dir==='up'?g2048[j][i]:g2048[3-j][i]);let n=line(a);for(let j=0;j<4;j++){let r=dir==='up'?j:dir==='down'?3-j:i,c=dir==='left'?j:dir==='right'?3-j:i;if(g2048[r][c]!==n[j])changed=true;g2048[r][c]=n[j]}}if(changed){add2048();draw2048()}}
+function draw2048(){let e=document.getElementById('g2048');e.innerHTML='';g2048.flat().forEach(v=>{let d=document.createElement('div');d.textContent=v||'';d.className='g2048tile v'+v;e.appendChild(d)});document.getElementById('g2048Score').textContent=score2048}
+document.addEventListener('keydown',e=>{if(document.getElementById('offline2048Page').classList.contains('active')){let m={ArrowLeft:'left',ArrowRight:'right',ArrowUp:'up',ArrowDown:'down'}[e.key];if(m)move2048(m)}});window.start2048=start2048;
+
+/* Minesweeper */
+let mineGrid;
+function startMines(){mineGrid=Array.from({length:8},()=>Array.from({length:8},()=>({m:false,o:false,n:0})));let cells=[...Array(64).keys()].sort(()=>Math.random()-.5).slice(0,10);cells.forEach(i=>mineGrid[Math.floor(i/8)][i%8].m=true);for(let r=0;r<8;r++)for(let c=0;c<8;c++)if(!mineGrid[r][c].m){for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){let rr=r+dr,cc=c+dc;if(rr>=0&&rr<8&&cc>=0&&cc<8&&mineGrid[rr][cc].m)mineGrid[r][c].n++}}drawMines()}
+function drawMines(){let e=document.getElementById('mines');e.innerHTML='';mineGrid.forEach((row,r)=>row.forEach((p,c)=>{let b=document.createElement('button');b.textContent=p.o?(p.m?'💣':(p.n||'')):' ';b.onclick=()=>{if(p.o)return;p.o=true;if(p.m){document.getElementById('mineStatus').textContent='Boom! New game?';mineGrid.flat().forEach(x=>x.o=true)}drawMines()};e.appendChild(b)}))}
+window.startMines=startMines;
+
+/* Tetris - lightweight falling-block demo */
+let tetTimer,tetY,tetX,tetScore;
+function startTetris(){clearInterval(tetTimer);tetY=0;tetX=4;tetScore=0;tetTimer=setInterval(()=>{tetY++;if(tetY>17){tetY=0;tetX=Math.floor(Math.random()*8);tetScore++}drawTetris()},170);drawTetris()}
+function drawTetris(){let c=document.getElementById('tetrisCanvas'),x=c.getContext('2d');x.fillStyle='#07111d';x.fillRect(0,0,c.width,c.height);x.fillStyle='#62d9ff';x.fillRect(tetX*24,tetY*24,48,48);x.strokeStyle='rgba(255,255,255,.08)';for(let i=0;i<=10;i++){x.beginPath();x.moveTo(i*24,0);x.lineTo(i*24,480);x.stroke()}document.getElementById('tetrisScore').textContent='Score: '+tetScore}
+window.startTetris=startTetris;
+
+/* Sudoku */
+function startSudoku(){let base=[1,2,3,4,5,6,7,8,9],grid=[];for(let r=0;r<9;r++)grid.push(base.slice((r*3+Math.floor(r/3))%9).concat(base.slice(0,(r*3+Math.floor(r/3))%9)));grid=grid.map(a=>a.slice());let e=document.getElementById('sudoku');e.innerHTML='';grid.forEach((row,r)=>row.forEach((v,c)=>{let b=document.createElement('button');b.textContent=Math.random()<.42?'':v;b.onclick=()=>{if(!b.textContent)b.textContent=v};e.appendChild(b)}))}
+window.startSudoku=startSudoku;
+
+/* Memory */
+let memFirst=null,memLock=false,memMatches=0;
+function startMemory(){memFirst=null;memLock=false;memMatches=0;let a=['🍎','🍌','🍇','🍉','🍒','🥝','🍋','🥥'].flatMap(x=>[x,x]).sort(()=>Math.random()-.5),e=document.getElementById('memory');e.innerHTML='';a.forEach(v=>{let b=document.createElement('button');b.textContent='❓';b.onclick=()=>{if(memLock||b.dataset.done)return;b.textContent=v;if(!memFirst){memFirst=b;return}if(memFirst.textContent===b.textContent){memFirst.dataset.done=b.dataset.done='1';memFirst=null;memMatches++;if(memMatches===8)document.getElementById('memoryStatus').textContent='You matched them all!'}else{memLock=true;let f=memFirst;setTimeout(()=>{f.textContent=b.textContent='❓';memFirst=null;memLock=false},600)}};e.appendChild(b)})}
+window.startMemory=startMemory;
+
+/* Pong */
+let pongTimer,px=140,py=140,dx=3,dy=2,ps=0,ai=0;
+function startPong(){clearInterval(pongTimer);px=250;py=140;dx=3;dy=2;ps=ai=0;pongTimer=setInterval(stepPong,16)}
+function stepPong(){let c=document.getElementById('pongCanvas'),x=c.getContext('2d');px+=dx;py+=dy;if(py<0||py>292)dy*=-1;if(px<20){if(Math.abs(py-140)<50)dx=Math.abs(dx);else ai++}if(px>500){if(Math.abs(py-140)<50)dx=-Math.abs(dx);else ps++}let ap=py-30; x.fillStyle='#07111d';x.fillRect(0,0,520,300);x.fillStyle='#fff';x.fillRect(10,ap,10,60);x.fillRect(500,py-30,10,60);x.beginPath();x.arc(px,py,7,0,7);x.fill();document.getElementById('pongScore').textContent=ps+' : '+ai}
+window.startPong=startPong;
+
+/* Endless Racer */
+let racerTimer,rx=160,ry=450,rscore=0,ob={x:80,y:-80};
+function startRacer(){clearInterval(racerTimer);rx=160;rscore=0;ob={x:Math.random()*260,y:-80};racerTimer=setInterval(stepRacer,30)}
+function stepRacer(){let c=document.getElementById('racerCanvas'),x=c.getContext('2d');ob.y+=5;rscore++;if(ob.y>520){ob.y=-80;ob.x=Math.random()*260}x.fillStyle='#151922';x.fillRect(0,0,360,520);x.fillStyle='#3c414c';x.fillRect(55,0,250,520);x.fillStyle='#fff';for(let y=-20;y<520;y+=70)x.fillRect(175,y+(rscore%70),8,35);x.fillStyle='#e84b4b';x.fillRect(rx,450,40,60);x.fillStyle='#58a6ff';x.fillRect(ob.x,ob.y,40,60);if(ob.y>400&&ob.y<510&&Math.abs(ob.x-rx)<38){clearInterval(racerTimer);document.getElementById('racerScore').textContent='Crashed! Distance: '+rscore}else document.getElementById('racerScore').textContent='Distance: '+rscore}
+window.startRacer=startRacer;
+/* 2048 swipe controls */
+(function(){let el=document.getElementById('g2048'),sx=0,sy=0;if(!el)return;el.addEventListener('touchstart',e=>{if(!e.touches[0])return;sx=e.touches[0].clientX;sy=e.touches[0].clientY},{passive:true});el.addEventListener('touchend',e=>{if(!e.changedTouches[0])return;let dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;if(Math.max(Math.abs(dx),Math.abs(dy))<25)return;th2048Move(Math.abs(dx)>Math.abs(dy)?(dx>0?'right':'left'):(dy>0?'down':'up'))},{passive:true})})();
+/* Mobile game controls */
+window.thTetMove=function(dir){if(typeof tetX==='number'){tetX=Math.max(0,Math.min(8,tetX+dir));drawTetris()}};
+window.thTetRotate=function(){/* simple visual rotation */ let c=document.getElementById('tetrisCanvas');c.classList.toggle('th-rotate-piece');setTimeout(()=>c.classList.remove('th-rotate-piece'),160)};
+window.thTetDrop=function(){if(typeof tetY==='number'){tetY=18;drawTetris()}};
+window.thPongMove=function(dir){if(typeof py==='number'){py=Math.max(30,Math.min(270,py+dir*38))}};
+window.thRacerMove=function(dir){if(typeof rx==='number'){rx=Math.max(60,Math.min(265,rx+dir*55))}};
+window.thRacerBrake=function(){if(typeof rscore==='number'){rscore=Math.max(0,rscore-5)}};
+window.th2048Move=function(dir){if(typeof move2048==='function')move2048(dir)};
+})();
+</script>
+
+<script>
+(function(){
+let cCoins=1000,cRounds=0,cWins=0,cBest=1000,cBusy=false;
+const colors=['red','green','blue'];
+window.openOfflineColor=function(){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById('offlineColorPage').classList.add('active');cRender();window.scrollTo(0,0)}
+window.thColorPick=function(pick){
+ if(cBusy)return;
+ const bet=Math.max(1,Math.min(100,Number(document.getElementById('colorBet').value)||10));
+ if(bet>cCoins){document.getElementById('colorResult').textContent='Not enough virtual coins.';return}
+ cBusy=true;cCoins-=bet;cRounds++;
+ const luck=Number(document.getElementById('colorLuck').value);
+ const win=Math.random()*100<luck;
+ let result=win?pick:colors.filter(x=>x!==pick)[Math.floor(Math.random()*2)];
+ const box=document.getElementById('colorBox'),glow=document.getElementById('colorGlow');
+ box.className='th-color-box '+result+' rolling';glow.className='th-color-glow '+result;
+ document.getElementById('colorBoxIcon').textContent='🎨';
+ let spins=0;
+ const anim=setInterval(()=>{const temp=colors[Math.floor(Math.random()*3)];box.className='th-color-box '+temp+' rolling';spins++;if(spins>=10){clearInterval(anim);setTimeout(()=>{box.className='th-color-box '+result;box.querySelector('span').textContent=result.toUpperCase();if(result===pick){const winAmount=bet*2;cCoins+=winAmount;cWins++;document.getElementById('colorResult').textContent='🎉 You won '+winAmount+' virtual coins!'; thWinPopup('COLOR WIN!','🎨 '+result.toUpperCase()+' matched your pick • +'+winAmount+' coins!','🎨');}else document.getElementById('colorResult').textContent='Result: '+result.toUpperCase()+' • You lost '+bet+' virtual coins.';cBest=Math.max(cBest,cCoins);cBusy=false;cRender()},130)}},85)
+}
+function cRender(){document.getElementById('colorCoins').textContent=cCoins;document.getElementById('colorRounds').textContent=cRounds;document.getElementById('colorWins').textContent=cWins;document.getElementById('colorBest').textContent=cBest}
+window.thColorReset=function(){cCoins=1000;cRounds=0;cWins=0;cBest=1000;cBusy=false;document.getElementById('colorBox').className='th-color-box red';document.getElementById('colorBoxIcon').textContent='?';document.getElementById('colorResult').textContent='Pick a color to start.';cRender()}
+document.addEventListener('DOMContentLoaded',cRender)
+})();
+</script>
+
+<script>
+function thToggleGameMenu(btn){
+  const menu=btn.parentElement.nextElementSibling;
+  if(menu) menu.hidden=!menu.hidden;
+}
+</script>
+
+<script>
+(function(){
+const KEY='tinehub_big_update_v1';
+const defaultData={name:'Player',avatar:'🎮',coins:500,xp:0,level:1,streak:0,lastDay:'',gamesPlayed:0,unique:[],wins:0,bestScore:0,favs:[],sound:true,music:false,vibrate:true,motion:true,theme:'default',ach:[],daily:{date:'',play:0,unique:0,win:0,claim:false}};
+let D={...defaultData,...JSON.parse(localStorage.getItem(KEY)||'{}')};
+D.daily={...defaultData.daily,...(D.daily||{})};
+const gameNames=Object.keys({"Chess":1,"Lucky Scatter":1,"Dice Odd / Even":1,"Color Rush":1,"Snake":1,"Tic-Tac-Toe":1,"2048":1,"Minesweeper":1,"Tetris":1,"Sudoku":1,"Memory Cards":1,"Pong":1,"Endless Racer":1,"Brawlmasters Shooting":1});
+function save(){localStorage.setItem(KEY,JSON.stringify(D));renderHub()}
+function day(){return new Date().toISOString().slice(0,10)}
+function refreshDaily(){let d=day();if(D.daily.date!==d){D.daily={date:d,play:0,unique:0,win:0,claim:false};save()}}
+function xpNeed(){return 250+(D.level-1)*150}
+function addXP(n){D.xp+=n;while(D.xp>=xpNeed()){D.xp-=xpNeed();D.level++;D.coins+=100}}
+function sound(freq=520,dur=.055){if(!D.sound)return;try{const A=window.AudioContext||window.webkitAudioContext;if(!A)return;const a=new A(),o=a.createOscillator(),g=a.createGain();o.frequency.value=freq;o.type='sine';g.gain.setValueAtTime(.045,a.currentTime);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+dur);o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+dur)}catch(e){}}
+function vibrate(){if(D.vibrate&&navigator.vibrate)navigator.vibrate(18)}
+function renderHub(){refreshDaily();document.getElementById('thHubCoins').textContent=D.coins;document.getElementById('thHubLevel').textContent=D.level;document.getElementById('thHubStreak').textContent=D.streak;document.getElementById('thHubGreeting').textContent='Hi, '+D.name+' • '+D.xp+'/'+xpNeed()+' XP';document.documentElement.dataset.thTheme=D.theme;document.documentElement.classList.toggle('th-reduce-motion',!D.motion)}
+function thTrack(name){
+ refreshDaily();D.gamesPlayed++;if(!D.unique.includes(name)){D.unique.push(name);D.daily.unique++}D.daily.play++;addXP(20);D.coins+=5;checkAchievements();save();sound(620);vibrate()
+}
+function thWin(name){D.wins++;D.daily.win++;D.coins+=25;addXP(40);checkAchievements();save();sound(820,.1)}
+function thFav(name){if(D.favs.includes(name))D.favs=D.favs.filter(x=>x!==name);else D.favs.push(name);save();thFilterGames()}
+window.thFav=thFav;
+function thFilterGames(){let q=(document.getElementById('thGameSearch')?.value||'').toLowerCase(),cat=document.getElementById('thGameCategory')?.value||'all',fav=document.getElementById('thFavOnly')?.dataset.on==='1';document.querySelectorAll('#offlineGameSelection .tile').forEach(b=>{let n=b.dataset.game||'',c=b.dataset.category||'';b.style.display=((!q||n.toLowerCase().includes(q))&&(cat==='all'||c===cat)&&(!fav||D.favs.includes(n)))?'':'none';let star=b.querySelector('.th-fav-star');if(star)star.textContent=D.favs.includes(n)?'★':'☆'})}
+window.thFilterGames=thFilterGames;window.thToggleFavOnly=function(){let b=document.getElementById('thFavOnly');b.dataset.on=b.dataset.on==='1'?'0':'1';b.textContent=b.dataset.on==='1'?'★ Favorites':'☆ Favorites';thFilterGames()}
+window.thHubGetCoins=function(){return D.coins};window.thHubReward=function(c,x){c=Math.max(0,Number(c)||0);x=Math.max(0,Number(x)||0);D.coins+=c;addXP(x);checkAchievements();save()};
+function checkAchievements(){
+ const defs=[
+  ['first','First Launch','Play your first offline game',D.gamesPlayed>=1,50],
+  ['five','Getting Started','Play 5 games',D.gamesPlayed>=5,75],
+  ['collector','Game Collector','Play 5 different games',D.unique.length>=5,150],
+  ['allgames','Complete Collection','Play every game',D.unique.length>=gameNames.length,500],
+  ['wins10','Winner','Record 10 wins',D.wins>=10,150],
+  ['level5','Rising Star','Reach Level 5',D.level>=5,200],
+  ['streak3','On Fire','Claim 3 daily streaks',D.streak>=3,150],
+  ['favorites','Curator','Favorite 5 games',D.favs.length>=5,100]
+ ];
+ defs.forEach(a=>{if(a[3]&&!D.ach.includes(a[0])){D.ach.push(a[0]);D.coins+=a[4];addXP(50)}})
+}
+function achList(){return [
+['first','🎮 First Launch','Play your first offline game',D.gamesPlayed>=1],
+['five','🕹️ Getting Started','Play 5 games',D.gamesPlayed>=5],
+['collector','🧳 Game Collector','Play 5 different games',D.unique.length>=5],
+['allgames','🏆 Complete Collection','Play every game',D.unique.length>=gameNames.length],
+['wins10','👑 Winner','Record 10 wins',D.wins>=10],
+['level5','⭐ Rising Star','Reach Level 5',D.level>=5],
+['streak3','🔥 On Fire','Reach a 3-day streak',D.streak>=3],
+['favorites','💖 Curator','Favorite 5 games',D.favs.length>=5]
+]}
+function thOpenHubModal(type){
+ refreshDaily();let title='',body='';
+ if(type==='profile'){title='👤 Profile';body=`<div class="th-profile"><div class="th-avatar">${D.avatar}</div><input id="thName" value="${D.name.replace(/"/g,'&quot;')}" maxlength="18"><div class="th-avatar-grid">${['🎮','😎','🦊','🐼','🤖','👑','🔥','🚀'].map(x=>`<button onclick="thPickAvatar('${x}')">${x}</button>`).join('')}</div><button onclick="thSaveProfile()">Save Profile</button></div>`}
+ if(type==='stats'){title='📊 My Stats';body=`<div class="th-stat-grid"><div><b>${D.level}</b><span>Level</span></div><div><b>${D.gamesPlayed}</b><span>Games Played</span></div><div><b>${D.wins}</b><span>Wins</span></div><div><b>${D.unique.length}/${gameNames.length}</b><span>Games Tried</span></div><div><b>${D.coins}</b><span>TineCoins</span></div><div><b>${D.streak}</b><span>Day Streak</span></div></div><div class="th-progress"><span>XP ${D.xp}/${xpNeed()}</span><i><em style="width:${Math.min(100,D.xp/xpNeed()*100)}%"></em></i></div>`}
+ if(type==='achievements'){title='🏆 Achievements';body='<div class="th-ach-list">'+achList().map(a=>`<div class="th-ach ${a[3]?'done':''}"><b>${a[1]}</b><span>${a[2]}</span><em>${a[3]?'UNLOCKED':'LOCKED'}</em></div>`).join('')+'</div>'}
+ if(type==='daily'){let claimed=D.daily.claim;title='🎯 Daily Challenges';body=`<div class="th-daily-head">Complete today's goals for bonus TineCoins + XP.</div><div class="th-challenge">🎮 Play 3 games <b>${Math.min(3,D.daily.play)}/3</b></div><div class="th-challenge">🧳 Try 2 different games <b>${Math.min(2,D.daily.unique)}/2</b></div><div class="th-challenge">🏆 Get 1 win <b>${Math.min(1,D.daily.win)}/1</b></div><button ${claimed?'disabled':''} onclick="thClaimDaily()">${claimed?'✓ Claimed':'Claim Daily Reward (+150 coins)'}</button>`}
+ if(type==='settings'){title='⚙️ Game Settings';body=`<div class="th-setting"><span>🔊 Sound Effects</span><button onclick="thToggleSetting('sound')">${D.sound?'ON':'OFF'}</button></div><div class="th-setting"><span>📳 Vibration</span><button onclick="thToggleSetting('vibrate')">${D.vibrate?'ON':'OFF'}</button></div><div class="th-setting"><span>✨ Animations</span><button onclick="thToggleSetting('motion')">${D.motion?'ON':'OFF'}</button></div><div class="th-setting"><span>🌙 Theme</span><select onchange="thTheme(this.value)"><option value="default" ${D.theme==='default'?'selected':''}>Midnight</option><option value="sunset" ${D.theme==='sunset'?'selected':''}>Sunset</option><option value="mint" ${D.theme==='mint'?'selected':''}>Mint</option></select></div><hr><button class="th-danger" onclick="thResetAll()">Reset TineHub Game Data</button>`}
+ document.getElementById('thHubModalTitle').textContent=title;document.getElementById('thHubModalBody').innerHTML=body;document.getElementById('thHubModal').hidden=false
+}
+window.thOpenHubModal=thOpenHubModal;window.thCloseHubModal=()=>document.getElementById('thHubModal').hidden=true;
+window.thPickAvatar=function(a){D.avatar=a;document.querySelector('.th-avatar').textContent=a}
+window.thSaveProfile=function(){D.name=(document.getElementById('thName').value||'Player').trim().slice(0,18);save();thCloseHubModal()}
+window.thToggleSetting=function(k){D[k]=!D[k];save();thOpenHubModal('settings')}
+window.thTheme=function(v){D.theme=v;save();thOpenHubModal('settings')}
+window.thClaimDaily=function(){if(D.daily.claim||D.daily.play<3||D.daily.unique<2||D.daily.win<1)return;D.daily.claim=true;D.coins+=150;addXP(100);D.streak++;checkAchievements();save();thOpenHubModal('daily')}
+window.thResetAll=function(){if(confirm('Reset all TineHub game progress, coins, achievements and settings?')){localStorage.removeItem(KEY);location.reload()}}
+window.addEventListener('keydown',e=>{if(e.key==='Escape')thCloseHubModal()});
+document.addEventListener('click',e=>{if(e.target.closest('button'))sound(480,.035)});
+
+function wrapOpen(fn,name){let old=window[fn];if(typeof old!=='function')return;window[fn]=function(){thTrack(name);return old.apply(this,arguments)}}
+function install(){refreshDaily();renderHub();thFilterGames();['openOfflineChess','openOfflineScatter','openOfflineDice','openOfflineColor','openOfflineSnake','openOfflineTicTacToe','openOffline2048','openOfflineMines','openOfflineTetris','openOfflineSudoku','openOfflineMemory','openOfflinePong','openOfflineRacer','openBrawlMasters'].forEach((fn,i)=>wrapOpen(fn,gameNames[i]));document.querySelectorAll('#offlineGameSelection .tile').forEach(b=>{let n=b.dataset.game;if(!b.querySelector('.th-fav-star')){let s=document.createElement('span');s.className='th-fav-star';s.setAttribute('role','button');s.setAttribute('aria-label','Favorite '+n);s.textContent=D.favs.includes(n)?'★':'☆';s.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();thFav(n)});s.addEventListener('pointerup',function(e){e.preventDefault();e.stopPropagation()},{passive:false});b.appendChild(s)}});thFilterGames()}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);else install();
+})();
+</script>
+<script>
+(function(){
+function dragCanvas(id,fn){const c=document.getElementById(id);if(!c)return;let lastY=0,lastX=0,active=false;c.addEventListener('touchstart',e=>{active=true;lastY=e.touches[0].clientY;lastX=e.touches[0].clientX},{passive:true});c.addEventListener('touchmove',e=>{if(!active)return;const t=e.touches[0],dy=t.clientY-lastY,dx=t.clientX-lastX;if(Math.abs(dy)>10||Math.abs(dx)>10){fn(dx,dy);lastY=t.clientY;lastX=t.clientX}},{passive:true});c.addEventListener('touchend',()=>active=false,{passive:true})}
+dragCanvas('pongCanvas',(dx,dy)=>{if(window.thPongMove&&Math.abs(dy)>4)window.thPongMove(dy>0?1:-1)});
+dragCanvas('racerCanvas',(dx,dy)=>{if(window.thRacerMove&&Math.abs(dx)>8)window.thRacerMove(dx>0?1:-1)});
+})();
+</script>
+
+
+
+<script>
+(function(){
+  window.thSafeShowGame=function(id){
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    const target=document.getElementById(id);
+    if(target){target.classList.add('active');window.scrollTo(0,0);}
+  };
+  // Make the game cards resilient even if a previous wrapper fails.
+  window.thOpenDiceSafe=function(){thSafeShowGame('offlineDicePage');if(window.diceRender)window.diceRender()};
+  window.thOpenWorldSafe=function(){if(window.openTineWorld)window.openTineWorld();else thSafeShowGame('tineWorldPage')};
+  window.thOpenActivitiesSafe=function(){if(window.openTineActivities)window.openTineActivities();else thSafeShowGame('tineActivitiesPage')};
+  // Add a visible mobile hint to canvas games.
+  document.addEventListener('DOMContentLoaded',function(){
+    ['tetrisCanvas','pongCanvas','racerCanvas'].forEach(id=>{
+      const c=document.getElementById(id);
+      if(c) c.style.touchAction='none';
+    });
+  });
+})();
+</script>
+
+<script>
+(function(){
+"use strict";
+
+/* TineWorld v3 — isolated game state so it cannot break the main hub. */
+const TW_KEY="tinehub_world_v3";
+const TW_W=40, TW_H=24;
+let tw={seed:0,x:20,y:11,hp:100,coins:0,wood:3,stone:2,ore:0,food:3,day:1,minute:480,
+        blocks:[],tools:{pickaxe:0,sword:0,camp:0},enemies:[]};
+let twCtx=null, twLoop=null;
+
+const TILE={
+  water:"#3187b5", grass:"#67b84f", sand:"#d5bd73", tree:"#2f8a48",
+  stone:"#707984", ore:"#8b62bd", dirt:"#8b5a35", build:"#a66b3d"
+};
+
+function twDefault(seed){
+  const s=(seed||Math.floor(Math.random()*2147483647))>>>0;
+  return {seed:s,x:20,y:11,hp:100,coins:0,wood:3,stone:2,ore:0,food:3,day:1,minute:480,
+          blocks:[],tools:{pickaxe:0,sword:0,camp:0},enemies:[]};
+}
+function twRng(seed){let n=(seed>>>0)||1;return()=>{n=(n*1664525+1013904223)>>>0;return n/4294967296}}
+function twGenerate(seed){
+  const r=twRng(seed), map=[];
+  for(let y=0;y<TW_H;y++){
+    const row=[];
+    for(let x=0;x<TW_W;x++){
+      const edge=x<2||y<2||x>TW_W-3||y>TW_H-3;
+      const n=r();
+      row.push(edge?"water":n<.08?"water":n<.18?"tree":n<.27?"stone":n<.32?"ore":n<.38?"sand":"grass");
+    }
+    map.push(row);
+  }
+  // Guaranteed safe spawn area.
+  for(let y=9;y<=13;y++)for(let x=18;x<=22;x++)map[y][x]="grass";
+  return map;
+}
+function twLoad(){
+  try{
+    const raw=JSON.parse(localStorage.getItem(TW_KEY)||"null");
+    if(raw&&raw.state&&Array.isArray(raw.map)){
+      tw={...twDefault(raw.state.seed),...raw.state,tools:{...twDefault(1).tools,...(raw.state.tools||{})}};
+      tw.map=raw.map; return;
+    }
+  }catch(e){}
+  twNew(false);
+}
+function twNew(save=true){
+  tw=twDefault();
+  tw.map=twGenerate(tw.seed);
+  tw.enemies=Array.from({length:5},(_,i)=>({x:4+i*7,y:5+(i%3)*6,hp:20}));
+  if(save)twSave();
+  twDraw();twRender();
+}
+function twSave(){
+  localStorage.setItem(TW_KEY,JSON.stringify({state:tw,map:tw.map}));
+  const e=document.getElementById("twFixSave");if(e)e.textContent="Saved ✓";
+}
+function twTile(x,y){return x<0||y<0||x>=TW_W||y>=TW_H?"wall":tw.map[y][x]}
+function twSet(x,y,t){if(x>=0&&y>=0&&x<TW_W&&y<TW_H)tw.map[y][x]=t}
+function twCanWalk(x,y){const t=twTile(x,y);return t!=="wall"&&t!=="water"&&t!=="tree"&&t!=="stone"&&t!=="ore"&&
+  !tw.blocks.some(b=>b.x===x&&b.y===y)}
+function twStatus(s){const e=document.getElementById("twFixStatus");if(e)e.textContent=s}
+function twReward(c){tw.coins+=c; if(window.thHubReward)window.thHubReward(c,Math.floor(c*.6))}
+function twFixMove(dx,dy){
+  const nx=tw.x+dx,ny=tw.y+dy;
+  if(!twCanWalk(nx,ny)){twStatus("Blocked. Mine the resource or choose another tile.");return}
+  tw.x=nx;tw.y=ny;tw.minute=(tw.minute+4)%1440;
+  twSave();twDraw();twRender();
+}
+function twFixMine(){
+  const candidates=[[tw.x+1,tw.y],[tw.x-1,tw.y],[tw.x,tw.y+1],[tw.x,tw.y-1]];
+  const p=candidates.find(([x,y])=>["tree","stone","ore","sand"].includes(twTile(x,y)));
+  if(!p){twStatus("No mineable resource beside you.");return}
+  const [x,y]=p,t=twTile(x,y);
+  if(t==="tree")tw.wood++;
+  else if(t==="stone")tw.stone++;
+  else if(t==="ore")tw.ore++;
+  else tw.stone++;
+  twSet(x,y,"grass");twReward(t==="ore"?8:2);tw.minute=(tw.minute+8)%1440;
+  twStatus(t==="ore"?"💎 Ore mined!":"⛏️ Resource mined!");
+  twSave();twDraw();twRender();
+}
+function twFixBuild(){
+  if(tw.wood<1&&tw.stone<1){twStatus("Need at least 1 wood or 1 stone to build.");return}
+  const p=[[tw.x+1,tw.y],[tw.x-1,tw.y],[tw.x,tw.y+1],[tw.x,tw.y-1]].find(([x,y])=>twCanWalk(x,y));
+  if(!p){twStatus("No empty tile nearby.");return}
+  const [x,y]=p;tw.blocks.push({x,y});if(tw.wood)tw.wood--;else tw.stone--;
+  twStatus("🧱 Built a block.");twSave();twDraw();twRender();
+}
+function twFixAttack(){
+  const i=tw.enemies.findIndex(e=>Math.abs(e.x-tw.x)<=1&&Math.abs(e.y-tw.y)<=1);
+  if(i<0){twStatus("No enemy nearby.");return}
+  tw.enemies.splice(i,1);twReward(15);twStatus("⚔️ Enemy defeated! +15 coins");
+  twSave();twDraw();twRender();
+}
+function twFixEat(){
+  if(tw.food<=0){twStatus("No food left. Try Activities or start a new world.");return}
+  if(tw.hp>=100){twStatus("HP is already full.");return}
+  tw.food--;tw.hp=Math.min(100,tw.hp+25);twStatus("🍎 You recovered 25 HP.");twSave();twDraw();twRender();
+}
+function twFixCollect(){twReward(5);twStatus("🪙 Collected 5 virtual coins.");twSave();twRender()}
+function twFixCraft(item){
+  const cost={pickaxe:[3,2,0],sword:[1,0,2],camp:[5,2,0]}[item];
+  if(!cost)return;
+  if(tw.wood<cost[0]||tw.stone<cost[1]||tw.ore<cost[2]){twStatus("Not enough materials for "+item+".");return}
+  tw.wood-=cost[0];tw.stone-=cost[1];tw.ore-=cost[2];tw.tools[item]++;
+  twStatus("🔨 Crafted "+item+"!");twReward(5);twSave();twRender();
+}
+function twClock(){
+  tw.minute+=6;if(tw.minute>=1440){tw.minute=0;tw.day++}
+  if(Math.random()<.08&&tw.enemies.length<8){
+    let x=2+Math.floor(Math.random()*(TW_W-4)),y=2+Math.floor(Math.random()*(TW_H-4));
+    if(twCanWalk(x,y))tw.enemies.push({x,y,hp:20});
+  }
+  if(tw.hp>0&&Math.random()<.025)tw.hp=Math.max(0,tw.hp-5);
+  if(tw.hp===0){tw.hp=100;tw.food=Math.max(0,tw.food-1);twStatus("💫 You fainted and woke up at camp.")}
+  twSave();twDraw();twRender();
+}
+function twDraw(){
+  const c=document.getElementById("twFixCanvas");if(!c)return;
+  twCtx=twCtx||c.getContext("2d");const ctx=twCtx,w=c.width,h=c.height;
+  const sx=w/TW_W,sy=h/TW_H;ctx.clearRect(0,0,w,h);
+  for(let y=0;y<TW_H;y++)for(let x=0;x<TW_W;x++){
+    const t=twTile(x,y);ctx.fillStyle=TILE[t]||TILE.grass;ctx.fillRect(x*sx,y*sy,sx+1,sy+1);
+    if(t==="tree"){ctx.fillStyle="#205f31";ctx.fillRect(x*sx+sx*.28,y*sy+sy*.18,sx*.44,sy*.62);ctx.fillStyle="#3aa452";ctx.beginPath();ctx.arc(x*sx+sx/2,y*sy+sy*.35,Math.min(sx,sy)*.32,0,Math.PI*2);ctx.fill()}
+    if(t==="ore"){ctx.fillStyle="#e4c65f";ctx.fillRect(x*sx+sx*.35,y*sy+sy*.35,sx*.3,sy*.3)}
+    ctx.strokeStyle="rgba(0,0,0,.08)";ctx.strokeRect(x*sx,y*sy,sx,sy);
+  }
+  tw.blocks.forEach(b=>{ctx.fillStyle=TILE.build;ctx.fillRect(b.x*sx,b.y*sy,sx-1,sy-1);ctx.strokeStyle="rgba(255,220,170,.3)";ctx.strokeRect(b.x*sx,b.y*sy,sx-1,sy-1)});
+  tw.enemies.forEach(e=>{ctx.fillStyle="#d83f65";ctx.beginPath();ctx.arc(e.x*sx+sx/2,e.y*sy+sy/2,Math.min(sx,sy)*.28,0,Math.PI*2);ctx.fill()});
+  ctx.fillStyle="#ffe15a";ctx.beginPath();ctx.arc(tw.x*sx+sx/2,tw.y*sy+sy/2,Math.min(sx,sy)*.34,0,Math.PI*2);ctx.fill();
+  const night=tw.minute>1140||tw.minute<360;
+  if(night){ctx.fillStyle="rgba(8,14,35,.42)";ctx.fillRect(0,0,w,h)}
+}
+function twRender(){
+  const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v};
+  set("twFixHp",tw.hp);set("twFixCoins",tw.coins);set("twFixWood",tw.wood);set("twFixStone",tw.stone);set("twFixOre",tw.ore);
+  const hh=Math.floor(tw.minute/60),mm=tw.minute%60;set("twFixDay","Day "+tw.day+" • "+String(hh).padStart(2,"0")+":"+String(mm).padStart(2,"0"));
+  const inv=document.getElementById("twFixInventory");
+  if(inv)inv.innerHTML=[
+    ["🪵","Wood",tw.wood],["🪨","Stone",tw.stone],["💎","Ore",tw.ore],["🍎","Food",tw.food],
+    ["⛏️","Pickaxe",tw.tools.pickaxe],["⚔️","Sword",tw.tools.sword],["⛺","Camp",tw.tools.camp]
+  ].map(x=>`<span>${x[0]} ${x[1]} <b>${x[2]}</b></span>`).join("");
+}
+function twFixBack(){clearInterval(twLoop);twLoop=null;document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));const g=document.getElementById("games");if(g)g.classList.add("active");window.scrollTo(0,0)}
+function openWorld(){
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  const p=document.getElementById("tineWorldPage");if(!p)return;
+  p.classList.add("active");twLoad();clearInterval(twLoop);twLoop=setInterval(twClock,2000);twDraw();twRender();window.scrollTo(0,0);
+}
+window.twFixMove=twFixMove;window.twFixMine=twFixMine;window.twFixBuild=twFixBuild;window.twFixAttack=twFixAttack;window.twFixEat=twFixEat;window.twFixCollect=twFixCollect;window.twFixCraft=twFixCraft;window.twFixNew=()=>twNew(true);window.twFixSaveWorld=twSave;window.twFixBack=twFixBack;window.openTineWorld=openWorld;
+
+/* Activities v2 */
+const TA_KEY="tineactivities_v2";
+let ta={fish:0,farm:0,treasure:0,done:0,log:[]};
+function taLoad(){try{ta={...ta,...JSON.parse(localStorage.getItem(TA_KEY)||"{}")}}catch(e){}}
+function taSave(){localStorage.setItem(TA_KEY,JSON.stringify(ta));taRender()}
+function taRender(){
+  const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v};
+  set("taFishCount",ta.fish);set("taFarmCount",ta.farm);set("taTreasureCount",ta.treasure);set("taDoneCount",ta.done);
+  const log=document.getElementById("taFixLog");if(log)log.innerHTML=ta.log.length?ta.log.map(x=>`<div>${x}</div>`).join(""):"No activity yet.";
+}
+function taAdd(msg,reward){
+  ta.done++;ta.log.unshift("• "+msg+" <b>+"+reward+" coins</b>");ta.log=ta.log.slice(0,8);
+  if(window.thHubReward)window.thHubReward(reward,Math.floor(reward*.6));taSave();
+}
+let targetBusy=false;
+function taFixPlay(type){
+  taLoad();
+  if(type==="fishing"){ta.fish++;taAdd("🎣 You caught a Crystal Koi!",35)}
+  else if(type==="farm"){ta.farm++;taAdd("🌾 Harvest complete.",30)}
+  else if(type==="treasure"){const win=Math.random()<.45;ta.treasure+=win?1:0;taAdd(win?"💎 Treasure found!":"🗺️ You found a clue fragment.",win?80:10)}
+  else if(type==="archery"){taAdd("🏹 Bullseye! Range cleared.",45)}
+  else if(type==="brain"){taAdd("🧠 Challenge solved.",50)}
+  else {taAdd("📜 Quick Quest complete.",60)}
+  const e=document.getElementById("taFixResult");if(e)e.innerHTML="<b>Activity complete!</b><small>Reward added to your offline TineHub progression.</small>";
+  if(navigator.vibrate)navigator.vibrate([25,35,25]);
+}
+function taFixBack(){document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));const g=document.getElementById("games");if(g)g.classList.add("active");window.scrollTo(0,0)}
+function openActivities(){document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));const p=document.getElementById("tineActivitiesPage");if(!p)return;p.classList.add("active");taLoad();taRender();window.scrollTo(0,0)}
+window.taFixPlay=taFixPlay;window.taFixBack=taFixBack;window.openTineActivities=openActivities;
+document.addEventListener("keydown",e=>{
+  if(!document.getElementById("tineWorldPage")?.classList.contains("active"))return;
+  const k=e.key.toLowerCase(),m={w:[0,-1],arrowup:[0,-1],s:[0,1],arrowdown:[0,1],a:[-1,0],arrowleft:[-1,0],d:[1,0],arrowright:[1,0]};
+  if(m[k]){e.preventDefault();twFixMove(...m[k])}
+  if(k===" "){e.preventDefault();twFixMine()}
+});
+document.addEventListener("DOMContentLoaded",()=>{taLoad();taRender()});
+})();
+</script>
+
+<script>
+(function(){
+  document.addEventListener('click',function(e){
+    const star=e.target.closest && e.target.closest('#offlineGameSelection .th-fav-star');
+    if(star){
+      e.preventDefault();e.stopPropagation();
+      const card=star.closest('.tile'),name=card&&card.dataset.game;
+      if(name && window.thFav) window.thFav(name);
+      return;
+    }
+  },true);
+  // Make game control taps reliable in Acode/WebView without changing game mechanics.
+  document.addEventListener('pointerdown',function(e){
+    const b=e.target.closest && e.target.closest('.th-mobile-controls button, .th-dpad button');
+    if(!b)return;
+    b.classList.add('th-control-pressed');
+    setTimeout(()=>b.classList.remove('th-control-pressed'),120);
+  },{passive:true});
+})();
+</script>
+
+<script>
+(function(){
+  document.addEventListener('pointerup',function(e){
+    const b=e.target.closest && e.target.closest(
+      '.th-mobile-controls button,.th-dpad button,.tic-board button,.mines button,.sudoku button,.memory button,.th-game-controls button,.th-color-options button'
+    );
+    if(!b)return;
+    b.classList.add('th-tap-feedback');
+    setTimeout(function(){b.classList.remove('th-tap-feedback')},110);
+  },{passive:true});
+
+  // Acode/WebView fallback: keep the TineWorld movement controls directly callable.
+  window.thMoveWorldSafe=function(dx,dy){
+    if(typeof window.twMove==='function') window.twMove(dx,dy);
+  };
+})();
+</script>
+
+
+
+<script>
+(function(){
+  function thActivate(id){
+    document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+    const p=document.getElementById(id); if(p)p.classList.add("active");
+    window.scrollTo(0,0);
+  }
+  window.thOpenWorldSafe=function(){ if(window.openTineWorld) window.openTineWorld(); else thActivate("tineWorldPage"); };
+  window.thOpenActivitiesSafe=function(){ if(window.openTineActivities) window.openTineActivities(); else thActivate("tineActivitiesPage"); };
+})();
+</script>
+
+
+<script>
+(function(){
+'use strict';
+const BM={canvas:null,ctx:null,mode:'local',running:false,raf:0,keys:{},p1:null,p2:null,bullets:[],particles:[],score:[0,0],roundOver:false,last:0,charging:0,chargePlayer:0,joy:{1:{x:0,y:0},2:{x:0,y:0}}};
+const el=id=>document.getElementById(id);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+function bmOpen(){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));el('brawlmastersPage').classList.add('active');if(!BM.canvas){BM.canvas=el('bmCanvas');BM.ctx=BM.canvas.getContext('2d');bmBind();}bmReset();}
+function bmClose(){BM.running=false;cancelAnimationFrame(BM.raf);el('brawlmastersPage').classList.remove('active');el('games').classList.add('active');}
+function bmSetMode(mode){BM.mode=mode;document.querySelectorAll('.bm-mode').forEach(b=>b.classList.toggle('active',b.getAttribute('onclick')===`bmSetMode('${mode}')`));el('bmModeLabel').textContent=mode==='ai'?'1V1 VS AI':'1V1';el('bmP2Name').textContent=mode==='ai'?'🔴 AI':'🔴 Player 2';bmReset();}
+function player(x,y,color){return{x,y,r:24,color,hp:100,angle:color==='blue'?0:Math.PI,cd:0,hit:0};}
+function bmReset(){BM.p1=player(110,300,'blue');BM.p2=player(890,300,'red');BM.bullets=[];BM.particles=[];BM.roundOver=false;BM.running=true;BM.last=performance.now();BM.charging=0;BM.chargePlayer=0;bmStatus(BM.mode==='ai'?'P1: aim + hold FIRE • AI is hunting you':'P1/P2: aim with joystick • hold FIRE to charge');bmRenderHud();cancelAnimationFrame(BM.raf);BM.raf=requestAnimationFrame(bmLoop);}
+function bmBind(){
+ document.addEventListener('keydown',e=>{if(!BM.running)return;const k=e.key.toLowerCase();BM.keys[k]=true;if(['arrowup','arrowdown','arrowleft','arrowright',' '].includes(k))e.preventDefault();if(k==='f')bmStartCharge(1);if(k==='enter')bmStartCharge(2);});
+ document.addEventListener('keyup',e=>{const k=e.key.toLowerCase();if(k==='f')bmReleaseCharge(1);if(k==='enter')bmReleaseCharge(2);BM.keys[k]=false;});
+ bindJoy('bmJoy1',1);bindJoy('bmJoy2',2);
+ ['1','2'].forEach(n=>{const b=el('bmFire'+n);b.addEventListener('pointerdown',e=>{e.preventDefault();bmStartCharge(+n);b.setPointerCapture?.(e.pointerId)},{passive:false});b.addEventListener('pointerup',e=>{e.preventDefault();bmReleaseCharge(+n)},{passive:false});b.addEventListener('pointercancel',()=>bmReleaseCharge(+n));b.addEventListener('pointerleave',e=>{if(e.buttons)bmReleaseCharge(+n)});});
+}
+function bindJoy(id,pnum){const box=el(id);let active=false;const set=e=>{const r=box.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;let x=(e.clientX-cx)/(r.width*.38),y=(e.clientY-cy)/(r.height*.38);const l=Math.hypot(x,y)||1;if(l>1){x/=l;y/=l}BM.joy[pnum]={x,y};box.querySelector('span').style.transform=`translate(${x*30}px,${y*30}px)`;if(Math.hypot(x,y)>.12){const p=pnum===1?BM.p1:BM.p2;p.angle=Math.atan2(y,x);}};box.addEventListener('pointerdown',e=>{active=true;box.setPointerCapture?.(e.pointerId);set(e)});box.addEventListener('pointermove',e=>{if(active)set(e)});['pointerup','pointercancel','lostpointercapture'].forEach(ev=>box.addEventListener(ev,()=>{active=false;BM.joy[pnum]={x:0,y:0};box.querySelector('span').style.transform='translate(0,0)'}));}
+function bmStartCharge(p){if(!BM.running||BM.roundOver||BM.mode==='ai'&&p===2)return;if(BM.chargePlayer&&BM.chargePlayer!==p)return;BM.chargePlayer=p;BM.charging=0.05;}
+function bmReleaseCharge(p){if(BM.chargePlayer!==p)return;const power=clamp(BM.charging,0.12,1);BM.chargePlayer=0;BM.charging=0;bmShoot(p,power);}
+function bmMove(p,dx,dy){const q=p===1?BM.p1:BM.p2;const speed=260; q.x=clamp(q.x+dx*speed,35,965);q.y=clamp(q.y+dy*speed,45,555);}
+function bmShoot(p,power=0.7){if(!BM.running)return;const q=p===1?BM.p1:BM.p2;if(q.cd>0)return;q.cd=.22+.22*(1-power);const dx=Math.cos(q.angle),dy=Math.sin(q.angle),speed=430+480*power;BM.bullets.push({x:q.x+dx*30,y:q.y+dy*30,vx:dx*speed,vy:dy*speed,owner:p,life:1.7,damage:12+18*power});}
+function bmAI(dt){const p=BM.p2,t=BM.p1;const dx=t.x-p.x,dy=t.y-p.y,d=Math.hypot(dx,dy)||1;p.angle=Math.atan2(dy,dx);let mx=0,my=0;if(d>360){mx=dx/d;my=dy/d}else if(d<230){mx=-dx/d;my=-dy/d}bmMove(2,mx*dt,my*dt);if(Math.random()<dt*(1.4+Math.min(2,d/500))){bmShoot(2,.55+Math.random()*.4)}}
+function bmLoop(now){if(!BM.running)return;const dt=Math.min(.035,(now-BM.last)/1000||.016);BM.last=now;const p1=BM.p1,p2=BM.p2,k=BM.keys;
+ let x=(k.a?-1:0)+(k.d?1:0)+BM.joy[1].x,y=(k.w?-1:0)+(k.s?1:0)+BM.joy[1].y;if(x||y){const l=Math.hypot(x,y)||1;bmMove(1,x/l*dt,y/l*dt)}
+ if(BM.mode==='local'){x=(k.arrowleft?-1:0)+(k.arrowright?1:0)+BM.joy[2].x;y=(k.arrowup?-1:0)+(k.arrowdown?1:0)+BM.joy[2].y;if(x||y){const l=Math.hypot(x,y)||1;bmMove(2,x/l*dt,y/l*dt)}}else bmAI(dt);
+ if(BM.chargePlayer){BM.charging=clamp(BM.charging+dt*.72,0,1);el('bmPowerBar').style.width=(BM.charging*100)+'%';}
+ p1.cd=Math.max(0,p1.cd-dt);p2.cd=Math.max(0,p2.cd-dt);p1.hit=Math.max(0,p1.hit-dt);p2.hit=Math.max(0,p2.hit-dt);
+ for(const b of BM.bullets){b.x+=b.vx*dt;b.y+=b.vy*dt;b.life-=dt;if(b.x<25||b.x>975)b.vx*=-.85;if(b.y<25||b.y>575)b.vy*=-.85;const t=b.owner===1?p2:p1;if(Math.hypot(b.x-t.x,b.y-t.y)<t.r+6){t.hp-=b.damage;b.life=0;t.hit=.18;for(let i=0;i<10;i++)BM.particles.push({x:t.x,y:t.y,vx:(Math.random()-.5)*260,vy:(Math.random()-.5)*260,life:.4});}}
+ BM.bullets=BM.bullets.filter(b=>b.life>0);BM.particles.forEach(q=>{q.x+=q.vx*dt;q.y+=q.vy*dt;q.life-=dt});BM.particles=BM.particles.filter(q=>q.life>0);
+ if(p1.hp<=0||p2.hp<=0)bmRoundEnd(p1.hp>0?1:2);bmRender();BM.raf=requestAnimationFrame(bmLoop);}
+function bmRoundEnd(w){if(BM.roundOver)return;BM.roundOver=true;BM.score[w-1]++;bmStatus((w===1?'🔵 Player 1':'🔴 '+(BM.mode==='ai'?'AI':'Player 2'))+' wins the round!');bmRenderHud();setTimeout(()=>{if(BM.score[w-1]>=5){alert((w===1?'Player 1':BM.mode==='ai'?'AI':'Player 2')+' wins the match!');BM.score=[0,0];}bmReset()},900);}
+function bmRenderHud(){if(!BM.p1)return;el('bmP1Hp').textContent=Math.max(0,Math.ceil(BM.p1.hp));el('bmP2Hp').textContent=Math.max(0,Math.ceil(BM.p2.hp));el('bmP1HpBar').style.width=Math.max(0,BM.p1.hp)+'%';el('bmP2HpBar').style.width=Math.max(0,BM.p2.hp)+'%';el('bmP1Score').textContent=BM.score[0];el('bmP2Score').textContent=BM.score[1];}
+function bmStatus(s){if(el('bmStatus'))el('bmStatus').textContent=s}
+function bmRender(){const c=BM.ctx;if(!c)return;c.clearRect(0,0,1000,600);const g=c.createLinearGradient(0,0,1000,600);g.addColorStop(0,'#0b1220');g.addColorStop(1,'#172554');c.fillStyle=g;c.fillRect(0,0,1000,600);c.fillStyle='#1e293b';[[250,150,150,34],[750,150,150,34],[250,450,150,34],[750,450,150,34],[500,300,90,70]].forEach(o=>c.fillRect(o[0]-o[2]/2,o[1]-o[3]/2,o[2],o[3]));
+ for(const b of BM.bullets){c.beginPath();c.arc(b.x,b.y,5,0,Math.PI*2);c.fillStyle=b.owner===1?'#7dd3fc':'#fb7185';c.fill()}for(const q of BM.particles){c.globalAlpha=Math.max(0,q.life/.4);c.fillStyle='#facc15';c.fillRect(q.x,q.y,4,4)}c.globalAlpha=1;drawFighter(c,BM.p1);drawFighter(c,BM.p2);bmRenderHud();}
+function drawFighter(c,p){c.save();c.translate(p.x,p.y);c.rotate(p.angle);c.fillStyle=p.hit?'#fff':'#e5e7eb';c.beginPath();c.arc(0,0,p.r,0,Math.PI*2);c.fill();c.fillStyle=p.color==='blue'?'#0284c7':'#e11d48';c.fillRect(-14,-18,28,36);c.fillStyle='#111827';c.fillRect(8,-5,34,10);c.restore();c.fillStyle='#111827';c.fillRect(p.x-32,p.y-p.r-16,64,7);c.fillStyle=p.color==='blue'?'#22c55e':'#ef4444';c.fillRect(p.x-32,p.y-p.r-16,64*Math.max(0,p.hp/100),7);}
+window.openBrawlMasters=bmOpen;window.closeBrawlMasters=bmClose;window.bmSetMode=bmSetMode;window.bmReset=bmReset;
+})();
+</script>\n<script>
+(function(){
+'use strict';
+const P={c:null,x:null,ctx:null,running:false,raf:0,last:0,balls:[],turn:0,power:0,charging:false,aim:0,score:[0,0],shotCount:0,drag:false};
+const E=id=>document.getElementById(id),C=(v,a,b)=>Math.max(a,Math.min(b,v));
+const W=1100,H=620,T={x:55,y:55,w:990,h:510,r:30};
+function openPoolGame(){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));E('poolPage').classList.add('active');if(!P.c){P.c=E('poolCanvas');P.ctx=P.c.getContext('2d');poolBind();}poolReset();}
+function closePoolGame(){P.running=false;cancelAnimationFrame(P.raf);E('poolPage').classList.remove('active');E('games').classList.add('active');}
+function ball(n,x,y,color,type){return{n,x,y,vx:0,vy:0,r:12,color,type,active:true};}
+function poolReset(){P.running=true;P.last=performance.now();P.turn=0;P.score=[0,0];P.shotCount=0;P.power=0;P.charging=false;P.drag=false;P.aim=0;P.balls=[];P.balls.push(ball(0,300,310,'#f8fafc','cue'));let rows=[[1,'#f59e0b','solid'],[2,'#2563eb','solid'],[3,'#ef4444','solid'],[4,'#7c3aed','solid'],[5,'#f97316','solid'],[6,'#16a34a','solid'],[7,'#991b1b','solid'],[8,'#111827','eight'],[9,'#f59e0b','stripe'],[10,'#2563eb','stripe'],[11,'#ef4444','stripe'],[12,'#7c3aed','stripe'],[13,'#f97316','stripe'],[14,'#16a34a','stripe'],[15,'#991b1b','stripe']];let sx=760,sy=310,i=0;for(let row=0;row<5;row++){for(let col=0;col<=row;col++){const d=rows[i++];P.balls.push(ball(d[0],sx+row*22,sy+(col-row/2)*25,d[1],d[2]))}}poolMsg('Player 1: aim at the rack.');poolDraw();cancelAnimationFrame(P.raf);P.raf=requestAnimationFrame(poolLoop);}
+function poolBind(){const c=P.c;c.addEventListener('pointerdown',e=>{if(!P.running||P.charging)return;P.drag=true;poolAim(e);c.setPointerCapture?.(e.pointerId)});c.addEventListener('pointermove',e=>{if(P.drag)poolAim(e)});['pointerup','pointercancel','lostpointercapture'].forEach(ev=>c.addEventListener(ev,()=>P.drag=false));const b=E('poolShoot');b.addEventListener('pointerdown',e=>{e.preventDefault();if(P.running&&!P.charging){P.charging=true;P.power=.05;b.setPointerCapture?.(e.pointerId)}});b.addEventListener('pointerup',e=>{e.preventDefault();poolStrike();});b.addEventListener('pointercancel',poolStrike);b.addEventListener('pointerleave',e=>{if(e.buttons)poolStrike()});}
+function poolAim(e){const r=P.c.getBoundingClientRect(),x=(e.clientX-r.left)*W/r.width,y=(e.clientY-r.top)*H/r.height,q=P.balls[0];P.aim=Math.atan2(y-q.y,x-q.x);}
+function poolStrike(){if(!P.charging)return;P.charging=false;const q=P.balls[0];if(!q||!q.active)return;const speed=120+P.power*900;q.vx=Math.cos(P.aim)*speed;q.vy=Math.sin(P.aim)*speed;P.power=0;P.shotCount++;poolMsg(`Player ${P.turn+1} shot. Waiting for balls to stop…`);}
+function poolLoop(now){if(!P.running)return;const dt=Math.min(.025,(now-P.last)/1000||.016);P.last=now;if(P.charging){P.power=C(P.power+dt*.48,0,1);E('poolPowerBar').style.width=(P.power*100)+'%';}let moving=false;for(const b of P.balls){if(!b.active)continue;b.x+=b.vx*dt;b.y+=b.vy*dt;b.vx*=Math.pow(.987,dt*60);b.vy*=Math.pow(.987,dt*60);if(Math.hypot(b.vx,b.vy)>.5)moving=true;else{b.vx=0;b.vy=0;}
+ if(b.x<T.x+8&&b.vx<0){b.x=T.x+8;b.vx*=-.86}if(b.x>T.x+T.w-8&&b.vx>0){b.x=T.x+T.w-8;b.vx*=-.86}if(b.y<T.y+8&&b.vy<0){b.y=T.y+8;b.vy*=-.86}if(b.y>T.y+T.h-8&&b.vy>0){b.y=T.y+T.h-8;b.vy*=-.86}}
+ for(let i=0;i<P.balls.length;i++)for(let j=i+1;j<P.balls.length;j++)collide(P.balls[i],P.balls[j]);
+ for(const b of P.balls){if(!b.active)continue;const pockets=[[55,55],[550,55],[1045,55],[55,565],[550,565],[1045,565]];for(const [px,py] of pockets){if(Math.hypot(b.x-px,b.y-py)<28){b.active=false;b.vx=b.vy=0;if(b.n===0){poolMsg('Scratch! Cue ball returned. Player switches.');b.active=true;b.x=300;b.y=310;}else if(b.n===8){poolMsg('8 Ball pocketed — game over!');P.running=false;setTimeout(()=>{alert(`Player ${P.turn+1} wins the rack!`);poolReset()},600)}else{P.score[P.turn]++;poolMsg(`Player ${P.turn+1} pocketed ball #${b.n}. Keep shooting.`);}}}}
+ if(!moving&&!P.charging&&P.shotCount>0){P.shotCount=0;P.turn=1-P.turn;E('poolTurn').textContent='PLAYER '+(P.turn+1);E('poolTurnDot').textContent='●';E('poolP1Score').textContent=P.score[0]+' balls';E('poolP2Score').textContent=P.score[1]+' balls';}
+ poolDraw();P.raf=requestAnimationFrame(poolLoop);}
+function collide(a,b){if(!a.active||!b.active)return;let dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy),min=a.r+b.r;if(d===0||d>=min)return;let nx=dx/d,ny=dy/d,over=min-d;a.x-=nx*over/2;a.y-=ny*over/2;b.x+=nx*over/2;b.y+=ny*over/2;let rvx=b.vx-a.vx,rvy=b.vy-a.vy,rel=rvx*nx+rvy*ny;if(rel>0)return;let imp=-rel*.96;a.vx-=imp*nx;a.vy-=imp*ny;b.vx+=imp*nx;b.vy+=imp*ny;}
+function poolMsg(s){if(E('poolMessage'))E('poolMessage').textContent=s}
+function poolDraw(){const c=P.ctx;c.clearRect(0,0,W,H);c.fillStyle='#0b1220';c.fillRect(0,0,W,H);c.fillStyle='#7c4a21';c.fillRect(18,18,W-36,H-36);c.fillStyle='#14532d';c.fillRect(T.x,T.y,T.w,T.h);c.strokeStyle='#3f2a17';c.lineWidth=8;c.strokeRect(T.x,T.y,T.w,T.h);const pockets=[[55,55],[550,55],[1045,55],[55,565],[550,565],[1045,565]];for(const [x,y] of pockets){c.beginPath();c.arc(x,y,25,0,Math.PI*2);c.fillStyle='#020617';c.fill();c.beginPath();c.arc(x,y,29,0,Math.PI*2);c.strokeStyle='#a16207';c.lineWidth=5;c.stroke();}
+ const q=P.balls[0];if(q?.active&&!P.charging){c.save();c.setLineDash([8,8]);c.strokeStyle='rgba(255,255,255,.55)';c.beginPath();c.moveTo(q.x,q.y);c.lineTo(q.x+Math.cos(P.aim)*260,q.y+Math.sin(P.aim)*260);c.stroke();c.restore();}for(const b of P.balls){if(!b.active)continue;c.beginPath();c.arc(b.x+2,b.y+3,b.r,0,Math.PI*2);c.fillStyle='rgba(0,0,0,.28)';c.fill();c.beginPath();c.arc(b.x,b.y,b.r,0,Math.PI*2);c.fillStyle=b.color;c.fill();if(b.type==='stripe'){c.save();c.beginPath();c.arc(b.x,b.y,b.r,0,Math.PI*2);c.clip();c.fillStyle='#f8fafc';c.fillRect(b.x-b.r,b.y-4,b.r*2,8);c.restore()}c.strokeStyle='#fff';c.lineWidth=1;c.stroke();c.fillStyle=b.n===0?'#111':'#fff';c.font='bold 8px sans-serif';c.textAlign='center';c.textBaseline='middle';c.fillText(b.n,b.x,b.y)}E('poolPowerBar').style.width=(P.power*100)+'%';}
+window.openPoolGame=openPoolGame;window.closePoolGame=closePoolGame;window.poolReset=poolReset;
+})();
+</script>
+<script src="app.js"></script>
+<script src="tineworld_v5.js"></script>
+</body>
+</html>

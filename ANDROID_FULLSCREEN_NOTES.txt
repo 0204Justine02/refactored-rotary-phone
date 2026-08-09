@@ -1,0 +1,11 @@
+TineWorld 5.3 Android fullscreen/orientation
+
+The web layer now uses the Fullscreen API with navigationUI=hide and Screen Orientation Lock when supported, and the PWA manifest uses display=fullscreen.
+
+For an Android WebView APK, the Activity must provide WebChromeClient fullscreen handling and enable JavaScript. Android WebView documentation: https://developer.android.com/develop/ui/views/layout/webapps/webview
+
+Recommended native WebView settings:
+- webView.settings.javaScriptEnabled = true
+- webView.webChromeClient = WebChromeClient()
+- use WindowInsetsController to hide status/navigation bars for immersive fullscreen on modern Android
+- request landscape through Activity/ScreenOrientation when the user presses the landscape/fullscreen control if the wrapper requires native orientation locking

@@ -1,0 +1,9 @@
+{
+  "name": "Justine Hub",
+  "short_name": "Justine Hub",
+  "start_url": "./index.html",
+  "display": "fullscreen",
+  "theme_color": "#0b0b12",
+  "background_color": "#07070d",
+  "orientation": "any"
+}
